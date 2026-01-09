@@ -92,11 +92,50 @@ export default function Deals() {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isBulkActionOpen, setIsBulkActionOpen] = useState(false);
   const [selectedDeals, setSelectedDeals] = useState<string[]>([]);
-  const [viewMode, setViewMode] = useState<'table' | 'kanban' | 'pipeline'>('table');
+  const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
   const [sortBy, setSortBy] = useState('last_activity');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isLoading, setIsLoading] = useState(false);
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
+  
+  // New deal form state
+  const [newDeal, setNewDeal] = useState({
+    client_name: '',
+    client_email: '',
+    client_phone: '',
+    client_company: '',
+    client_company_size: '',
+    expo_name: '',
+    deal_type: 'booth',
+    deal_value: '',
+    probability: 50,
+    priority: 'medium',
+    assigned_salesperson: '',
+    booth_size_sqm: '',
+    booth_zone: '',
+    expected_close: '',
+    contract_deadline: '',
+    next_follow_up: '',
+    stage: 'talking',
+    notes: '',
+    tags: '',
+    decision_makers: '',
+    competitor_info: '',
+    budget_range: '',
+    source: 'website'
+  });
+
+// Deal stages configuration
+  const dealStages = [
+    { value: 'talking', label: 'Talking', icon: MessageSquare, color: 'bg-gray-100 text-gray-600', description: 'Initial contact and discovery' },
+    { value: 'meeting_scheduled', label: 'Meeting Scheduled', icon: Calendar, color: 'bg-blue-100 text-blue-600', description: 'Meeting arranged with prospect' },
+    { value: 'strategy_proposal', label: 'Strategy Proposal', icon: FileText, color: 'bg-green-100 text-green-600', description: 'Proposal sent and under review' },
+    { value: 'objection_handling', label: 'Objection Handling', icon: AlertCircle, color: 'bg-yellow-100 text-yellow-600', description: 'Addressing concerns and questions' },
+    { value: 'terms_finalized', label: 'Terms Finalized', icon: CheckCircle, color: 'bg-blue-100 text-blue-600', description: 'Agreement on terms and conditions' },
+    { value: 'closed_won', label: 'Closed Won', icon: Star, color: 'bg-green-100 text-green-600', description: 'Deal successfully closed' },
+    { value: 'closed_lost', label: 'Closed Lost', icon: Trash2, color: 'bg-red-100 text-red-600', description: 'Deal lost to competitor or cancelled' },
+    { value: 'canceled', label: 'Canceled', icon: XCircle, color: 'bg-gray-100 text-gray-600', description: 'Deal cancelled by prospect' }
+  ];
 
   // Enhanced mock data with comprehensive deal information
   const deals = [
@@ -146,6 +185,53 @@ export default function Deals() {
       competitor_info: 'Previously exhibited with TechExpo Inc.',
       budget_range: '$40,000 - $50,000',
       decision_makers: ['John Smith (CEO)', 'Mary Johnson (Marketing Director)'],
+    },
+    {
+      id: '2',
+      client_name: 'Tech Innovations Ltd',
+      client_id: '2',
+      client_email: 'info@techinnovations.com',
+      client_phone: '+1 (555) 987-6543',
+      client_company_size: 'Medium',
+      expo_name: 'Green Life Expo 2026',
+      expo_id: 'expo_1',
+      deal_type: 'booth',
+      stage: 'talking',
+      deal_value: 72000,
+      probability: 50,
+      priority: 'medium',
+      assigned_salesperson: 'Omar Fouad',
+      salesperson_id: 'omar_f',
+      booth_details: {
+        booth_size_sqm: 48,
+        booth_code: 'B-22',
+        zone: 'Innovation Zone',
+        location: 'Hall B, Level 1',
+        power_requirements: '15kW',
+        special_requirements: 'Audio/visual equipment, demo area',
+      },
+      timeline: {
+        created_at: '2026-01-03',
+        last_activity: '2026-01-09',
+        expected_close: '2026-01-20',
+        contract_deadline: '2026-01-25',
+        next_follow_up: '2026-01-12',
+      },
+      activities: [
+        { date: '2026-01-09', type: 'call', description: 'Initial discovery call completed', user: 'Omar Fouad' },
+        { date: '2026-01-08', type: 'email', description: 'Welcome email sent', user: 'Omar Fouad' },
+        { date: '2026-01-03', type: 'meeting', description: 'Lead qualification meeting', user: 'Omar Fouad' },
+      ],
+      documents: [
+        { name: 'Initial Proposal.pdf', type: 'proposal', date: '2026-01-08' },
+        { name: 'Company Profile.pdf', type: 'profile', date: '2026-01-03' },
+      ],
+      notes: 'Interested in innovative booth design. Looking for technology showcase opportunities.',
+      tags: ['technology', 'innovation', 'new_client'],
+      source: 'referral',
+      competitor_info: 'Considering multiple expo options',
+      budget_range: '$60,000 - $80,000',
+      decision_makers: ['Alex Chen (CTO)', 'Sarah Williams (VP Marketing)'],
     },
     {
       id: '2',
@@ -332,18 +418,7 @@ export default function Deals() {
     },
   ];
 
-  const dealStages = [
-    { value: 'lead_created', label: 'Lead Created', color: 'bg-gray-100 text-gray-800' },
-    { value: 'talking', label: 'Talking', color: 'bg-blue-100 text-blue-800' },
-    { value: 'meeting_scheduled', label: 'Meeting Scheduled', color: 'bg-yellow-100 text-yellow-800' },
-    { value: 'strategy_proposal', label: 'Strategy Proposal', color: 'bg-purple-100 text-purple-800' },
-    { value: 'objection_handling', label: 'Objection Handling', color: 'bg-orange-100 text-orange-800' },
-    { value: 'terms_finalized', label: 'Terms Finalized', color: 'bg-green-100 text-green-800' },
-    { value: 'closed_won', label: 'Closed - Won', color: 'bg-emerald-100 text-emerald-800' },
-    { value: 'closed_lost', label: 'Closed - Lost', color: 'bg-red-100 text-red-800' },
-    { value: 'deal_failed', label: 'Deal Failed', color: 'bg-red-100 text-red-800' },
-    { value: 'deal_canceled', label: 'Deal Canceled', color: 'bg-gray-100 text-gray-800' },
-  ];
+// Remove duplicate dealStages - using the one defined earlier
 
   const priorities = [
     { value: 'low', label: 'Low', color: 'bg-gray-100 text-gray-800' },
@@ -440,6 +515,44 @@ export default function Deals() {
     toast({
       title: "Quick Action",
       description: `${action} applied to deal ${dealId}`,
+    });
+  };
+
+
+
+  // Handle new deal creation
+  const handleCreateDeal = () => {
+    // Here you would typically send the data to your backend
+    toast({
+      title: "Deal Created",
+      description: `New deal for ${newDeal.client_name} has been created successfully.`,
+    });
+    setIsAddDealOpen(false);
+    // Reset form
+    setNewDeal({
+      client_name: '',
+      client_email: '',
+      client_phone: '',
+      client_company: '',
+      client_company_size: '',
+      expo_name: '',
+      deal_type: 'booth',
+      deal_value: '',
+      probability: 50,
+      priority: 'medium',
+      assigned_salesperson: '',
+      booth_size_sqm: '',
+      booth_zone: '',
+      expected_close: '',
+      contract_deadline: '',
+      next_follow_up: '',
+      stage: 'talking',
+      notes: '',
+      tags: '',
+      decision_makers: '',
+      competitor_info: '',
+      budget_range: '',
+      source: 'website'
     });
   };
 
@@ -665,7 +778,7 @@ export default function Deals() {
                 <Button variant="outline" onClick={() => setIsAddDealOpen(false)}>
                   Cancel
                 </Button>
-                <Button className="bg-space-blue hover:bg-space-blue/90">
+                <Button className="bg-space-blue hover:bg-space-blue/90" onClick={handleCreateDeal}>
                   Create Deal
                 </Button>
               </div>
@@ -905,7 +1018,132 @@ export default function Deals() {
         </CardContent>
       </Card>
 
+      {/* Kanban View */}
+      {viewMode === 'kanban' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-8 gap-4 overflow-x-auto">
+            {dealStages.map((stage) => {
+              const stageDeals = filteredDeals.filter(deal => deal.stage === stage.value);
+              const stageValue = stageDeals.reduce((sum, deal) => sum + deal.deal_value, 0);
+              const Icon = stage.icon;
+              
+              return (
+                <div key={stage.value} className="min-w-[300px] bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <div className={`p-2 rounded-lg ${stage.color}`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-text-primary">{stage.label}</h3>
+                        <p className="text-xs text-text-secondary">{stageDeals.length} deals</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-text-primary">${stageValue.toLocaleString()}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                    {stageDeals.map((deal) => (
+                      <Card key={deal.id} className="bg-white border border-gray-200 hover:shadow-md transition-shadow cursor-pointer">
+                        <CardContent className="p-4">
+                          <div className="space-y-3">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-text-primary text-sm">{deal.client_name}</h4>
+                                <p className="text-xs text-text-secondary">{deal.expo_name}</p>
+                              </div>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                    <MoreHorizontal className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="dropdown-content">
+                                  <DropdownMenuItem onClick={() => navigate(`/deals/${deal.id}`)}>
+                                    <Eye className="w-4 h-4 mr-2" />
+                                    View Details
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>
+                                    <Edit className="w-4 h-4 mr-2" />
+                                    Edit Deal
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>
+                                    <Phone className="w-4 h-4 mr-2" />
+                                    Call Client
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Badge className={getPriorityColor(deal.priority)} variant="secondary">
+                                  {deal.priority}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  {deal.deal_type}
+                                </Badge>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-lg font-bold text-text-primary">${deal.deal_value.toLocaleString()}</span>
+                                <span className="text-sm text-text-secondary">{deal.probability}%</span>
+                              </div>
+                              <Progress value={deal.probability} className="h-2" />
+                            </div>
+                            
+                            <div className="flex items-center justify-between text-xs text-text-secondary">
+                              <div className="flex items-center gap-1">
+                                <User className="w-3 h-3" />
+                                <span>{deal.assigned_salesperson}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                <span>{deal.timeline.next_follow_up}</span>
+                              </div>
+                            </div>
+                            
+                            {deal.tags && deal.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {deal.tags.slice(0, 2).map((tag, index) => (
+                                  <Badge key={index} variant="outline" className="text-xs px-1 py-0">
+                                    {tag}
+                                  </Badge>
+                                ))}
+                                {deal.tags.length > 2 && (
+                                  <Badge variant="outline" className="text-xs px-1 py-0">
+                                    +{deal.tags.length - 2}
+                                  </Badge>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                    
+                    {stageDeals.length === 0 && (
+                      <div className="text-center py-8 text-text-secondary">
+                        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Icon className="w-6 h-6" />
+                        </div>
+                        <p className="text-sm">No deals in this stage</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Enhanced Deals Table */}
+      {viewMode === 'table' && (
       <Card className="enterprise-card">
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -1209,6 +1447,7 @@ export default function Deals() {
           </Table>
         </CardContent>
       </Card>
+      )}
 
       {/* Import Dialog */}
       <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>

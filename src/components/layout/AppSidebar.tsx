@@ -96,36 +96,36 @@ export function AppSidebar() {
   const navigate = useNavigate();
 
   return (
-    <Sidebar className="sidebar-nav border-r border-sidebar-border">
-      <SidebarHeader className="p-6">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-space-blue rounded-lg flex items-center justify-center">
-            <Building2 className="w-5 h-5 text-white" />
+    <Sidebar className="sidebar-nav border-r border-sidebar-border/20">
+      <SidebarHeader className="p-6 border-b border-sidebar-border/10">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-gradient-to-br from-space-blue to-space-blue/80 rounded-xl flex items-center justify-center shadow-lg">
+            <Building2 className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-sidebar-foreground">SPACE CRM</h2>
-            <p className="text-sm text-sidebar-foreground/70">Expo Management</p>
+            <h2 className="text-xl font-bold text-sidebar-foreground tracking-tight">SPACE CRM</h2>
+            <p className="text-sm text-sidebar-foreground/60 font-medium">Expo Management</p>
           </div>
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
-        {menuItems.map((group) => (
-          <SidebarGroup key={group.title}>
-            <SidebarGroupLabel className="text-sidebar-foreground/70 text-xs uppercase tracking-wider">
+      <SidebarContent className="px-3 py-4">
+        {menuItems.map((group, groupIndex) => (
+          <SidebarGroup key={group.title} className={groupIndex > 0 ? 'mt-8' : ''}>
+            <SidebarGroupLabel className="text-sidebar-foreground/50 text-xs font-semibold uppercase tracking-wider mb-3 px-3">
               {group.title}
             </SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu>
+              <SidebarMenu className="space-y-1">
                 {group.items.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       onClick={() => navigate(item.url)}
                       isActive={location.pathname === item.url}
-                      className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground"
+                      className="nav-item text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:shadow-lg mx-2 rounded-xl"
                     >
-                      <item.icon className="w-4 h-4" />
-                      <span>{item.title}</span>
+                      <item.icon className="w-5 h-5" />
+                      <span className="font-medium">{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}

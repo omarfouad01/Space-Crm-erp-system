@@ -148,18 +148,33 @@ export default function Clients() {
   });
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold text-text-primary">Clients</h1>
-          <p className="text-text-secondary mt-1">
-            Manage exhibitors, sponsors, and partners for your expos
-          </p>
+    <div className="section-spacing fade-in">
+      {/* Enhanced Header */}
+      <div className="flex items-start justify-between mb-8">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <Building2 className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold text-text-primary tracking-tight">Clients</h1>
+              <p className="text-text-secondary text-lg">
+                Manage exhibitors, sponsors, and partners for your expos
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 mt-4">
+            <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+              {clients.length} Total Clients
+            </Badge>
+            <Badge className="bg-green-100 text-green-800 border-green-200">
+              {clients.filter(c => c.status === 'active').length} Active
+            </Badge>
+          </div>
         </div>
         <Dialog open={isAddClientOpen} onOpenChange={setIsAddClientOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-space-blue hover:bg-space-blue/90">
+            <Button className="btn-primary shadow-lg hover:shadow-xl">
               <Plus className="w-4 h-4 mr-2" />
               Add Client
             </Button>

@@ -1,11 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* SPACE CRM & Expo Management System Design System */
 /* Exact color specifications - NO DEVIATION ALLOWED */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
@@ -73,66 +73,173 @@
 
   body {
     @apply bg-background text-foreground font-inter;
-    font-feature-settings: 'tnum' on; /* Tabular figures for finance numbers */
+    font-feature-settings: 'tnum' on;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
-  /* Typography System */
+  /* Enhanced Typography System */
   .font-inter {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
   
-  h1, h2, h3, h4, h5, h6 {
-    font-weight: 600; /* Inter SemiBold */
+  h1 {
+    @apply text-3xl font-semibold tracking-tight;
+    line-height: 1.2;
   }
   
-  /* Enterprise UX - No visual noise */
+  h2 {
+    @apply text-2xl font-semibold tracking-tight;
+    line-height: 1.3;
+  }
+  
+  h3 {
+    @apply text-xl font-semibold;
+    line-height: 1.4;
+  }
+  
+  h4 {
+    @apply text-lg font-medium;
+  }
+  
+  h5, h6 {
+    @apply text-base font-medium;
+  }
+  
+  /* Enhanced Enterprise Cards */
   .enterprise-card {
-    @apply bg-white border border-border-neutral rounded-lg shadow-sm;
+    @apply bg-white border border-border-neutral rounded-xl shadow-sm;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
-  /* Solid white dropdowns - NO transparency */
+  .enterprise-card:hover {
+    @apply shadow-md;
+    transform: translateY(-1px);
+  }
+  
+  .enterprise-card-interactive {
+    @apply enterprise-card cursor-pointer;
+  }
+  
+  .enterprise-card-interactive:hover {
+    @apply shadow-lg border-space-blue/20;
+    transform: translateY(-2px);
+  }
+  
+  /* Enhanced Dropdowns */
   .dropdown-content {
-    @apply bg-white border border-border-neutral shadow-lg;
+    @apply bg-white border border-border-neutral shadow-xl rounded-lg;
     backdrop-filter: none !important;
     background: white !important;
+    animation: slideIn 0.15s ease-out;
   }
   
-  /* Status indicators */
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Enhanced Status System */
   .status-success {
-    @apply text-status-success bg-status-success/10;
+    @apply text-status-success bg-status-success/10 px-2.5 py-1 rounded-full text-xs font-medium;
   }
   
   .status-info {
-    @apply text-status-info bg-status-info/10;
+    @apply text-status-info bg-status-info/10 px-2.5 py-1 rounded-full text-xs font-medium;
   }
   
   .status-warning {
-    @apply text-status-warning bg-status-warning/10;
+    @apply text-status-warning bg-status-warning/10 px-2.5 py-1 rounded-full text-xs font-medium;
   }
   
   .status-error {
-    @apply text-status-error bg-status-error/10;
+    @apply text-status-error bg-status-error/10 px-2.5 py-1 rounded-full text-xs font-medium;
   }
   
-  /* Finance number formatting */
+  /* Enhanced Finance Numbers */
   .finance-number {
     font-feature-settings: 'tnum' on;
     font-variant-numeric: tabular-nums;
+    letter-spacing: -0.025em;
   }
   
-  /* Sidebar styling */
+  .finance-large {
+    @apply finance-number text-2xl font-bold;
+    letter-spacing: -0.05em;
+  }
+  
+  /* Enhanced Sidebar */
   .sidebar-nav {
     background: hsl(var(--sidebar-background));
     color: hsl(var(--sidebar-foreground));
+    backdrop-filter: blur(20px);
   }
   
-  /* Primary action button */
+  /* Enhanced Buttons */
   .btn-primary {
-    background: hsl(var(--space-blue));
-    color: white;
+    @apply bg-space-blue text-white px-4 py-2 rounded-lg font-medium;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px 0 hsl(var(--space-blue) / 0.3);
   }
   
   .btn-primary:hover {
-    background: hsl(var(--space-blue) / 0.9);
+    @apply bg-space-blue/90;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px 0 hsl(var(--space-blue) / 0.4);
+  }
+  
+  /* Enhanced Metrics Cards */
+  .metric-card {
+    @apply enterprise-card p-6;
+    background: linear-gradient(135deg, white 0%, hsl(var(--app-background)) 100%);
+  }
+  
+  .metric-card-primary {
+    @apply metric-card;
+    background: linear-gradient(135deg, hsl(var(--space-blue) / 0.05) 0%, white 100%);
+    border-left: 4px solid hsl(var(--space-blue));
+  }
+  
+  /* Enhanced Tables */
+  .table-enhanced th {
+    @apply text-left text-xs font-semibold text-text-secondary uppercase tracking-wider py-3 px-4;
+    border-bottom: 1px solid hsl(var(--border-neutral));
+  }
+  
+  .table-enhanced td {
+    @apply py-4 px-4 text-sm;
+    border-bottom: 1px solid hsl(var(--border-neutral) / 0.5);
+  }
+  
+  .table-enhanced tr:hover {
+    @apply bg-gray-50/50;
+  }
+  
+  /* Enhanced Animations */
+  .fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Enhanced Focus States */
+  .focus-enhanced:focus {
+    @apply outline-none ring-2 ring-space-blue/50 ring-offset-2;
   }
 }

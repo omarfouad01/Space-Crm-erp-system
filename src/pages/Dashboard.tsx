@@ -17,14 +17,19 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard() {
-  // Mock data - in real app this would come from API
+  // Enhanced mock data with growth metrics
   const stats = {
     totalClients: 247,
+    clientsGrowth: 12,
     activeDeals: 89,
+    dealsGrowth: 8,
     monthlyRevenue: 1250000,
+    revenueGrowth: 15,
     upcomingPayments: 450000,
     tasksOverdue: 12,
     ticketsOpen: 8,
+    conversionRate: 68,
+    avgDealSize: 42500,
   };
 
   const recentDeals = [
@@ -103,54 +108,85 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold text-text-primary">Dashboard</h1>
-          <p className="text-text-secondary mt-1">
-            Welcome back! Here's what's happening with your expo management.
-          </p>
+    <div className="section-spacing fade-in">
+      {/* Enhanced Header */}
+      <div className="flex items-start justify-between mb-8">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-space-blue to-space-blue/80 rounded-xl flex items-center justify-center shadow-lg">
+              <Building2 className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold text-text-primary tracking-tight">Dashboard</h1>
+              <p className="text-text-secondary text-lg">
+                Welcome back! Here's your expo management overview.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 mt-4">
+            <Badge className="bg-status-success/10 text-status-success border-status-success/20">
+              Green Life Expo 2026 Active
+            </Badge>
+            <span className="text-sm text-text-secondary">Last updated: 2 minutes ago</span>
+          </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="border-border-neutral">
+          <Button variant="outline" className="btn-secondary">
             <Calendar className="w-4 h-4 mr-2" />
             This Month
           </Button>
-          <Button className="bg-space-blue hover:bg-space-blue/90">
-            <Building2 className="w-4 h-4 mr-2" />
-            Green Life Expo 2026
+          <Button className="btn-primary">
+            <Target className="w-4 h-4 mr-2" />
+            View Goals
           </Button>
         </div>
       </div>
 
-      {/* Key Metrics */}
+      {/* Enhanced Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="enterprise-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-text-secondary">Total Clients</CardTitle>
-            <Users className="h-4 w-4 text-space-blue" />
+        <Card className="metric-card-primary group hover:shadow-lg transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="text-sm font-semibold text-text-secondary uppercase tracking-wide">Total Clients</CardTitle>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="finance-large text-text-primary">{stats.totalClients}</div>
+                <Badge className="status-success text-xs">
+                  +{stats.clientsGrowth}%
+                </Badge>
+              </div>
+            </div>
+            <div className="w-12 h-12 bg-space-blue/10 rounded-xl flex items-center justify-center group-hover:bg-space-blue/20 transition-colors">
+              <Users className="h-6 w-6 text-space-blue" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-text-primary finance-number">{stats.totalClients}</div>
-            <p className="text-xs text-status-success">
-              <TrendingUp className="inline w-3 h-3 mr-1" />
-              +12% from last month
-            </p>
+          <CardContent className="pt-0">
+            <div className="flex items-center gap-2 text-sm text-text-secondary">
+              <TrendingUp className="w-4 h-4 text-status-success" />
+              <span>+{stats.clientsGrowth}% from last month</span>
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="enterprise-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-text-secondary">Active Deals</CardTitle>
-            <Handshake className="h-4 w-4 text-space-blue" />
+        <Card className="metric-card group hover:shadow-lg transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="text-sm font-semibold text-text-secondary uppercase tracking-wide">Active Deals</CardTitle>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="finance-large text-text-primary">{stats.activeDeals}</div>
+                <Badge className="status-success text-xs">
+                  +{stats.dealsGrowth}%
+                </Badge>
+              </div>
+            </div>
+            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center group-hover:bg-orange-200 transition-colors">
+              <Handshake className="h-6 w-6 text-orange-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-text-primary finance-number">{stats.activeDeals}</div>
-            <p className="text-xs text-status-success">
-              <TrendingUp className="inline w-3 h-3 mr-1" />
-              +8% from last month
-            </p>
+          <CardContent className="pt-0">
+            <div className="flex items-center gap-2 text-sm text-text-secondary">
+              <TrendingUp className="w-4 h-4 text-status-success" />
+              <span>+{stats.dealsGrowth}% from last month</span>
+            </div>
           </CardContent>
         </Card>
 

@@ -5,336 +5,473 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import {
   Users,
-  Handshake,
   DollarSign,
-  Calendar,
-  TrendingUp,
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Building2,
   Target,
+  Clock,
+  TrendingUp,
+  CheckCircle,
+  AlertTriangle,
+  Eye,
+  Filter,
+  Download,
+  RefreshCw,
+  Plus,
+  BarChart3,
+  Activity,
+  ArrowUpRight,
+  TrendingDown,
+  Calendar,
+  FileText,
 } from 'lucide-react';
 
 export default function Dashboard() {
-  // Enhanced mock data with growth metrics
-  const stats = {
-    totalClients: 247,
-    clientsGrowth: 12,
-    activeDeals: 89,
-    dealsGrowth: 8,
-    monthlyRevenue: 1250000,
-    revenueGrowth: 15,
-    upcomingPayments: 450000,
-    tasksOverdue: 12,
-    ticketsOpen: 8,
-    conversionRate: 68,
-    avgDealSize: 42500,
-  };
+  // Sales pipeline stages data
+  const pipelineStages = [
+    { name: 'Talking', deals: 0, value: 0 },
+    { name: 'Meeting Scheduled', deals: 0, value: 0 },
+    { name: 'Proposal', deals: 0, value: 0 },
+    { name: 'Negotiation', deals: 0, value: 0 },
+    { name: 'Contract', deals: 0, value: 0 },
+    { name: 'Closed Won', deals: 0, value: 0 },
+    { name: 'Closed Lost', deals: 0, value: 0 },
+    { name: 'Canceled', deals: 0, value: 0 },
+  ];
 
-  const recentDeals = [
+  // Upcoming reminders data
+  const upcomingReminders = [
     {
       id: '1',
-      client: 'Green Tech Solutions',
-      value: 45000,
-      stage: 'terms_finalized',
-      probability: 90,
-      salesperson: 'Sarah Johnson',
+      title: 'Payment Due - EcoTech Solutions',
+      description: '$50,000 final payment due in 2 days',
+      dueDate: '1/17/2024',
+      type: 'payment',
     },
     {
       id: '2',
-      client: 'EcoLife Industries',
-      value: 78000,
-      stage: 'strategy_proposal',
-      probability: 65,
-      salesperson: 'Mike Chen',
+      title: 'Client Meeting - Solar Dynamics',
+      description: 'Quarterly review meeting tomorrow at 2:00 PM',
+      dueDate: '1/16/2024',
+      type: 'meeting',
     },
     {
       id: '3',
-      client: 'Sustainable Future Corp',
-      value: 32000,
-      stage: 'meeting_scheduled',
-      probability: 40,
-      salesperson: 'Emma Davis',
+      title: 'Proposal Deadline',
+      description: 'Submit WindPower Solutions proposal by Friday',
+      dueDate: '1/19/2024',
+      type: 'proposal',
     },
   ];
 
-  const upcomingTasks = [
+  // Team performance data
+  const teamPerformance = [
+    {
+      name: 'Sarah Johnson',
+      role: 'Senior Sales Manager',
+      revenue: '$485,000',
+      deals: '12 deals • 97%',
+      initials: 'SJ',
+      trend: 'up',
+    },
+    {
+      name: 'Mike Chen',
+      role: 'Sales Executive',
+      revenue: '$320,000',
+      deals: '8 deals • 91%',
+      initials: 'MC',
+      trend: 'up',
+    },
+    {
+      name: 'Alex Rivera',
+      role: 'Account Manager',
+      revenue: '$275,000',
+      deals: '15 deals • 92%',
+      initials: 'AR',
+      trend: 'stable',
+    },
+    {
+      name: 'Emma Davis',
+      role: 'Business Development',
+      revenue: '$180,000',
+      deals: '6 deals • 72%',
+      initials: 'ED',
+      trend: 'down',
+    },
+  ];
+
+  // Recent activity data
+  const recentActivity = [
     {
       id: '1',
-      title: 'Follow up with Green Tech Solutions',
-      dueDate: '2026-01-10',
-      priority: 'high',
-      assignee: 'Sarah Johnson',
+      title: 'Deal Closed Won',
+      description: 'EcoTech Solutions - Premium Sponsorship Package',
+      user: 'Sarah Johnson',
+      date: '1/15/2024',
+      type: 'deal',
+      status: 'Closed Won',
     },
     {
       id: '2',
-      title: 'Prepare proposal for EcoLife Industries',
-      dueDate: '2026-01-11',
-      priority: 'medium',
-      assignee: 'Mike Chen',
+      title: 'Payment Received',
+      description: '$125,000 payment for Green Energy Expo sponsorship',
+      user: 'Finance Team',
+      date: '1/15/2024',
+      type: 'payment',
+      status: 'Completed',
     },
     {
       id: '3',
-      title: 'Contract review meeting',
-      dueDate: '2026-01-12',
-      priority: 'high',
-      assignee: 'Emma Davis',
+      title: 'New Client Onboarded',
+      description: 'WindPower Solutions joined as Premium Exhibitor',
+      user: 'Mike Chen',
+      date: '1/15/2024',
+      type: 'client',
+      status: 'Active',
+    },
+    {
+      id: '4',
+      title: 'Strategy Meeting Completed',
+      description: 'Quarterly planning session with Green Alliance',
+      user: 'Team Lead',
+      date: '1/14/2024',
+      type: 'meeting',
+      status: 'Completed',
+    },
+    {
+      id: '5',
+      title: 'Proposal Submitted',
+      description: 'Custom exhibition package for CleanTech Innovations',
+      user: 'Alex Rivera',
+      date: '1/14/2024',
+      type: 'proposal',
+      status: 'In Progress',
     },
   ];
 
-  const getStageColor = (stage: string) => {
-    const colors = {
-      lead_created: 'bg-gray-100 text-gray-800',
-      talking: 'bg-blue-100 text-blue-800',
-      meeting_scheduled: 'bg-yellow-100 text-yellow-800',
-      strategy_proposal: 'bg-purple-100 text-purple-800',
-      objection_handling: 'bg-orange-100 text-orange-800',
-      terms_finalized: 'bg-green-100 text-green-800',
-      closed_won: 'bg-emerald-100 text-emerald-800',
-      closed_lost: 'bg-red-100 text-red-800',
-    };
-    return colors[stage as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+  const getTrendIcon = (trend: string) => {
+    switch (trend) {
+      case 'up':
+        return <TrendingUp className="w-4 h-4 text-success-soft" />;
+      case 'down':
+        return <TrendingDown className="w-4 h-4 text-error-soft" />;
+      case 'stable':
+        return <ArrowUpRight className="w-4 h-4 text-info-soft" />;
+      default:
+        return <TrendingUp className="w-4 h-4 text-success-soft" />;
+    }
   };
 
-  const getPriorityColor = (priority: string) => {
-    const colors = {
-      low: 'bg-gray-100 text-gray-800',
-      medium: 'bg-yellow-100 text-yellow-800',
-      high: 'bg-orange-100 text-orange-800',
-      urgent: 'bg-red-100 text-red-800',
-    };
-    return colors[priority as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'deal':
+        return 'bg-surface-primary text-error-soft';
+      case 'payment':
+        return 'bg-surface-primary text-warning-soft';
+      case 'client':
+        return 'bg-surface-primary text-warning-soft';
+      case 'meeting':
+        return 'bg-surface-primary text-success-soft';
+      case 'proposal':
+        return 'bg-surface-primary text-warning-soft';
+      default:
+        return 'bg-surface-primary text-warning-soft';
+    }
   };
 
   return (
-    <div className="section-spacing fade-in">
-      {/* Enhanced Header */}
-      <div className="flex items-start justify-between mb-8">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-space-blue to-space-blue/80 rounded-xl flex items-center justify-center shadow-lg">
-              <Building2 className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-text-primary tracking-tight">Dashboard</h1>
-              <p className="text-text-secondary text-lg">
-                Welcome back! Here's your expo management overview.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4 mt-4">
-            <Badge className="bg-status-success/10 text-status-success border-status-success/20">
-              Green Life Expo 2026 Active
-            </Badge>
-            <span className="text-sm text-text-secondary">Last updated: 2 minutes ago</span>
-          </div>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Executive Dashboard</h1>
+          <p className="text-gray-600 mt-2">Real-time insights and performance metrics for SPACE Organizing</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="btn-secondary">
-            <Calendar className="w-4 h-4 mr-2" />
-            This Month
+          <Button variant="outline">
+            <Filter className="w-4 h-4 mr-2" />
+            Filter
           </Button>
-          <Button className="btn-primary">
-            <Target className="w-4 h-4 mr-2" />
-            View Goals
+          <Button variant="outline">
+            <Download className="w-4 h-4 mr-2" />
+            Export
+          </Button>
+          <Button variant="outline">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
           </Button>
         </div>
       </div>
 
-      {/* Enhanced Key Metrics */}
+      {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="metric-card-primary group hover:shadow-lg transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <div>
-              <CardTitle className="text-sm font-semibold text-text-secondary uppercase tracking-wide">Total Clients</CardTitle>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="finance-large text-text-primary">{stats.totalClients}</div>
-                <Badge className="status-success text-xs">
-                  +{stats.clientsGrowth}%
-                </Badge>
+        {/* Total Revenue */}
+        <Card className="card-enhanced">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">$0</p>
+              </div>
+              <div className="p-3 rounded-lg bg-green-50">
+                <DollarSign className="w-6 h-6 text-green-600" />
               </div>
             </div>
-            <div className="w-12 h-12 bg-space-blue/10 rounded-xl flex items-center justify-center group-hover:bg-space-blue/20 transition-colors">
-              <Users className="h-6 w-6 text-space-blue" />
+            <div className="flex items-center mt-4">
+              <TrendingUp className="w-4 h-4 mr-1 text-green-600" />
+              <span className="text-sm font-medium text-green-600">+12.5% this month</span>
             </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="flex items-center gap-2 text-sm text-text-secondary">
-              <TrendingUp className="w-4 h-4 text-status-success" />
-              <span>+{stats.clientsGrowth}% from last month</span>
+            <div className="mt-3">
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>Monthly: $0</span>
+                <span>Target: $0</span>
+              </div>
+              <Progress className="h-2" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="metric-card group hover:shadow-lg transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <div>
-              <CardTitle className="text-sm font-semibold text-text-secondary uppercase tracking-wide">Active Deals</CardTitle>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="finance-large text-text-primary">{stats.activeDeals}</div>
-                <Badge className="status-success text-xs">
-                  +{stats.dealsGrowth}%
-                </Badge>
+        {/* Active Deals */}
+        <Card className="card-enhanced">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active Deals</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">2</p>
+              </div>
+              <div className="p-3 rounded-lg bg-blue-50">
+                <Target className="w-6 h-6 text-blue-600" />
               </div>
             </div>
-            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center group-hover:bg-orange-200 transition-colors">
-              <Handshake className="h-6 w-6 text-orange-600" />
+            <div className="flex items-center mt-4">
+              <CheckCircle className="w-4 h-4 mr-1 text-blue-600" />
+              <span className="text-sm font-medium text-blue-600">0 won (0.0% rate)</span>
             </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="flex items-center gap-2 text-sm text-text-secondary">
-              <TrendingUp className="w-4 h-4 text-status-success" />
-              <span>+{stats.dealsGrowth}% from last month</span>
+            <div className="mt-3 grid grid-cols-2 gap-4 text-xs">
+              <div>
+                <span className="text-gray-600">Total: </span>
+                <span className="text-gray-900 font-medium">2</span>
+              </div>
+              <div>
+                <span className="text-gray-600">Won: </span>
+                <span className="text-gray-900 font-medium">0</span>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="enterprise-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-text-secondary">Monthly Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-space-blue" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-text-primary finance-number">
-              ${stats.monthlyRevenue.toLocaleString()}
+        {/* Active Clients */}
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active Clients</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">8</p>
+              </div>
+              <div className="p-3 rounded-lg bg-surface-tertiary">
+                <Users className="w-6 h-6 text-space-cyan" />
+              </div>
             </div>
-            <p className="text-xs text-status-success">
-              <TrendingUp className="inline w-3 h-3 mr-1" />
-              +15% from last month
-            </p>
+            <div className="flex items-center mt-4">
+              <TrendingUp className="w-4 h-4 mr-1 text-green-600" />
+              <span className="text-sm font-medium text-green-600">+8 new this month</span>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-4 text-xs">
+              <div>
+                <span className="text-gray-600">Total: </span>
+                <span className="text-gray-900 font-medium">8</span>
+              </div>
+              <div>
+                <span className="text-gray-600">Retention: </span>
+                <span className="text-gray-900 font-medium">94.2%</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="enterprise-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-text-secondary">Upcoming Payments</CardTitle>
-            <Target className="h-4 w-4 text-space-blue" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-text-primary finance-number">
-              ${stats.upcomingPayments.toLocaleString()}
+        {/* Payments Due */}
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Payments Due</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">$0</p>
+              </div>
+              <div className="p-3 rounded-lg bg-surface-tertiary">
+                <Clock className="w-6 h-6 text-warning-soft" />
+              </div>
             </div>
-            <p className="text-xs text-text-secondary">Next 30 days</p>
+            <div className="flex items-center mt-4">
+              <AlertTriangle className="w-4 h-4 mr-1 text-error-soft" />
+              <span className="text-sm font-medium text-red-600">0 overdue</span>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-4 text-xs">
+              <div>
+                <span className="text-gray-600">Collected: </span>
+                <span className="text-gray-900 font-medium">$0</span>
+              </div>
+              <div>
+                <span className="text-gray-600">Next Week: </span>
+                <span className="text-gray-900 font-medium">$0</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Alerts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="enterprise-card border-l-4 border-l-status-warning">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-status-warning" />
-              Attention Required
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-text-secondary">Overdue Tasks</span>
-              <Badge className="bg-status-warning/10 text-status-warning">{stats.tasksOverdue}</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-text-secondary">Open Tickets</span>
-              <Badge className="bg-status-info/10 text-status-info">{stats.ticketsOpen}</Badge>
-            </div>
-            <Button variant="outline" size="sm" className="w-full mt-3">
-              View All Issues
-            </Button>
-          </CardContent>
-        </Card>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Sales Pipeline - 2 columns */}
+        <div className="lg:col-span-2">
+          <Card className="border-0 shadow-sm">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-semibold text-gray-900">Sales Pipeline</CardTitle>
+                  <CardDescription>Deal progression through stages</CardDescription>
+                </div>
+                <Button variant="outline">
+                  <Eye className="w-4 h-4 mr-2" />
+                  View All
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {pipelineStages.map((stage, index) => (
+                  <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-surface-tertiary">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{stage.name}</p>
+                        <p className="text-xs text-gray-600">{stage.deals} deals</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-body font-medium text-primary">${stage.value}</p>
+                      <p className="text-caption text-secondary">Total value</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-        <Card className="enterprise-card border-l-4 border-l-status-success">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-status-success" />
-              Recent Achievements
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-text-secondary">Deals Closed This Week</span>
-              <Badge className="bg-status-success/10 text-status-success">7</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-text-secondary">Payments Collected</span>
-              <Badge className="bg-status-success/10 text-status-success">$125K</Badge>
-            </div>
-            <Button variant="outline" size="sm" className="w-full mt-3">
-              View Performance
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Upcoming Reminders */}
+        <div>
+          <Card className="border-0 shadow-sm">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-heading-2">Upcoming Reminders</CardTitle>
+                  <CardDescription>Critical deadlines and events</CardDescription>
+                </div>
+                <Button variant="outline">
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {upcomingReminders.map((reminder) => (
+                  <div key={reminder.id} className="flex items-start gap-3 p-3 rounded-lg bg-surface-tertiary">
+                    <div className={`p-2 rounded-md ${reminder.type === 'payment' ? 'bg-red-100 text-error-soft' : reminder.type === 'meeting' ? 'bg-yellow-100 text-warning-soft' : 'bg-yellow-100 text-warning-soft'}`}>
+                      {reminder.type === 'payment' && <DollarSign className="w-4 h-4" />}
+                      {reminder.type === 'meeting' && <Calendar className="w-4 h-4" />}
+                      {reminder.type === 'proposal' && <FileText className="w-4 h-4" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-body-sm font-medium text-primary">{reminder.title}</p>
+                      <p className="text-caption text-secondary mt-1">{reminder.description}</p>
+                      <p className="text-caption text-tertiary mt-1">Due: {reminder.dueDate}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
-      {/* Recent Deals & Tasks */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Deals */}
-        <Card className="enterprise-card">
+      {/* Team Performance & Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Team Performance */}
+        <Card className="border-0 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg">Recent Deals</CardTitle>
-            <CardDescription>Latest deals in your pipeline</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-heading-2">Team Performance</CardTitle>
+                <CardDescription>Individual targets and achievements</CardDescription>
+              </div>
+              <Button variant="outline">
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Analytics
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentDeals.map((deal) => (
-                <div key={deal.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex-1">
-                    <h4 className="font-medium text-text-primary">{deal.client}</h4>
-                    <p className="text-sm text-text-secondary">{deal.salesperson}</p>
+              {teamPerformance.map((member, index) => (
+                <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-surface-tertiary">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-space-cyan text-white flex items-center justify-center text-sm font-medium">
+                      {member.initials}
+                    </div>
+                    <div>
+                      <p className="text-body font-medium text-primary">{member.name}</p>
+                      <p className="text-caption text-secondary">{member.role}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    {getTrendIcon(member.trend)}
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-text-primary finance-number">
-                      ${deal.value.toLocaleString()}
-                    </p>
-                    <Badge className={getStageColor(deal.stage)} variant="secondary">
-                      {deal.stage.replace('_', ' ')}
-                    </Badge>
-                  </div>
-                  <div className="ml-4">
-                    <div className="w-16">
-                      <Progress value={deal.probability} className="h-2" />
-                    </div>
-                    <p className="text-xs text-text-secondary mt-1">{deal.probability}%</p>
+                    <p className="text-body-sm font-medium text-primary">{member.revenue}</p>
+                    <p className="text-caption text-secondary">{member.deals}</p>
                   </div>
                 </div>
               ))}
             </div>
-            <Button variant="outline" className="w-full mt-4">
-              View All Deals
-            </Button>
           </CardContent>
         </Card>
 
-        {/* Upcoming Tasks */}
-        <Card className="enterprise-card">
+        {/* Recent Activity */}
+        <Card className="border-0 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg">Upcoming Tasks</CardTitle>
-            <CardDescription>Tasks requiring your attention</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-heading-2">Recent Activity</CardTitle>
+                <CardDescription>Latest updates and changes</CardDescription>
+              </div>
+              <Button variant="outline">
+                <Activity className="w-4 h-4 mr-2" />
+                View All
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {upcomingTasks.map((task) => (
-                <div key={task.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex-1">
-                    <h4 className="font-medium text-text-primary">{task.title}</h4>
-                    <p className="text-sm text-text-secondary">{task.assignee}</p>
+              {recentActivity.map((activity) => (
+                <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg bg-surface-tertiary">
+                  <div className={`p-2 rounded-md ${getActivityIcon(activity.type)}`}>
+                    {activity.type === 'deal' && <Target className="w-4 h-4" />}
+                    {activity.type === 'payment' && <DollarSign className="w-4 h-4" />}
+                    {activity.type === 'client' && <Users className="w-4 h-4" />}
+                    {activity.type === 'meeting' && <Calendar className="w-4 h-4" />}
+                    {activity.type === 'proposal' && <FileText className="w-4 h-4" />}
                   </div>
-                  <div className="text-right">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-text-secondary" />
-                      <span className="text-sm text-text-secondary">{task.dueDate}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-body-sm font-medium text-primary">{activity.title}</p>
+                    <p className="text-caption text-secondary mt-1">{activity.description}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge className="text-xs">{activity.status}</Badge>
+                      <span className="text-caption text-tertiary">by {activity.user} • {activity.date}</span>
                     </div>
-                    <Badge className={getPriorityColor(task.priority)} variant="secondary">
-                      {task.priority}
-                    </Badge>
                   </div>
                 </div>
               ))}
             </div>
-            <Button variant="outline" className="w-full mt-4">
-              View All Tasks
-            </Button>
           </CardContent>
         </Card>
       </div>

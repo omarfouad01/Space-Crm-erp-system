@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { Layout } from '@/components/layout/Layout';
 
 // Pages
+import Index from '@/pages/Index';
 import Dashboard from '@/pages/Dashboard';
 import Clients from '@/pages/Clients';
 import ClientDetail from '@/pages/ClientDetail';
@@ -41,8 +42,8 @@ function App() {
     <Router>
       <Layout>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/" element={<Index />} />
+          <Route path="/dashboard" element={<Index />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/clients/:id" element={<ClientDetail />} />
           <Route path="/deals" element={<Deals />} />

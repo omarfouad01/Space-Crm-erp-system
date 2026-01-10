@@ -838,4 +838,29 @@ export const connectionService = {
   }
 };
 
+export const settingsService = {
+  updateCurrency: async (currencyCode: string) => {
+    try {
+      // For now, we'll store in localStorage since we don't have a settings table
+      localStorage.setItem('systemCurrency', currencyCode);
+      console.log('💰 Settings: Currency saved to localStorage:', currencyCode);
+      return true;
+    } catch (error) {
+      console.error('❌ Settings: Error saving currency:', error);
+      return false;
+    }
+  },
+  
+  getCurrency: async () => {
+    try {
+      const currency = localStorage.getItem('systemCurrency') || 'USD';
+      console.log('💰 Settings: Currency loaded from localStorage:', currency);
+      return currency;
+    } catch (error) {
+      console.error('❌ Settings: Error loading currency:', error);
+      return 'USD';
+    }
+  }
+};
+
 export default SupabaseService;

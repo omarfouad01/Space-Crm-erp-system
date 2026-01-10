@@ -2,6 +2,7 @@ import React from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { Layout } from '@/components/layout/Layout';
+import { CurrencyProvider } from '@/contexts/CurrencyContext';
 
 // Pages
 import Index from '@/pages/Index';
@@ -55,7 +56,8 @@ function App() {
   }
 
   return (
-    <Router>
+    <CurrencyProvider>
+      <Router>
       <Layout>
         <Routes>
           <Route path="/" element={<Index />} />
@@ -92,7 +94,8 @@ function App() {
         </Routes>
       </Layout>
       <Toaster />
-    </Router>
+      </Router>
+    </CurrencyProvider>
   );
 }
 

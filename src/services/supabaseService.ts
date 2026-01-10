@@ -63,6 +63,48 @@ export interface Exhibition {
   created_at: string;
 }
 
+export interface Booth {
+  id: string;
+  booth_number: string;
+  booth_code: string;
+  exhibition_id?: string;
+  expo_name?: string;
+  hall?: string;
+  zone?: string;
+  aisle?: string;
+  position?: string;
+  booth_type: string;
+  size_sqm: number;
+  width_m?: number;
+  length_m?: number;
+  height_m?: number;
+  status: string;
+  availability_start?: string;
+  availability_end?: string;
+  base_price: number;
+  additional_costs?: number;
+  total_price: number;
+  currency: string;
+  assigned_to_company?: string;
+  assigned_to_contact?: string;
+  assigned_to_email?: string;
+  assigned_to_phone?: string;
+  client_id?: string;
+  features?: string[];
+  amenities?: any;
+  power_supply?: string;
+  internet_access?: boolean;
+  water_supply?: boolean;
+  compressed_air?: boolean;
+  description?: string;
+  notes?: string;
+  special_requirements?: string;
+  created_at: string;
+  updated_at?: string;
+  created_by?: string;
+  updated_by?: string;
+}
+
 class SupabaseService {
   // Deal Service
   async getAllDeals(): Promise<Deal[]> {
@@ -158,6 +200,115 @@ class SupabaseService {
     }
   }
 
+  // Booth Service
+  async getAllBooths(): Promise<Booth[]> {
+    try {
+      const { data, error } = await supabase
+        .from('booths_2026_01_10_12_00')
+        .select(`
+          *,
+          exhibitions_2026_01_10_12_00:exhibition_id (
+            id,
+            name,
+            start_date,
+            end_date,
+            location
+          ),
+          clients_2026_01_10_12_00:client_id (
+            id,
+            name,
+            company,
+            email,
+            phone
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      return (data || []).map(booth => ({
+        ...booth,
+        expo_name: booth.exhibitions_2026_01_10_12_00?.name || booth.expo_name,
+        features: Array.isArray(booth.features) ? booth.features : []
+      }));
+    } catch (error) {
+      console.error('Error fetching booths:', error);
+      // Return mock data for development
+      return this.getMockBooths();
+    }
+  }
+
+  async createBooth(booth: Partial<Booth>): Promise<Booth> {
+    try {
+      const { data, error } = await supabase
+        .from('booths_2026_01_10_12_00')
+        .insert([{
+          ...booth,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating booth:', error);
+      throw error;
+    }
+  }
+
+  async updateBooth(id: string, updates: Partial<Booth>): Promise<Booth> {
+    try {
+      const { data, error } = await supabase
+        .from('booths_2026_01_10_12_00')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating booth:', error);
+      throw error;
+    }
+  }
+
+  async updateBoothStatus(id: string, status: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('booths_2026_01_10_12_00')
+        .update({
+          status,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating booth status:', error);
+      throw error;
+    }
+  }
+
+  async deleteBooth(id: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('booths_2026_01_10_12_00')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error deleting booth:', error);
+      throw error;
+    }
+  }
+
   // Client Service
   async getAllClients(): Promise<Client[]> {
     try {
@@ -207,6 +358,129 @@ class SupabaseService {
   }
 
   // Mock data for development
+  private getMockBooths(): Booth[] {
+    return [
+      {
+        id: 'booth-1',
+        booth_number: 'A001',
+        booth_code: 'GLE2024-A001',
+        exhibition_id: 'expo-1',
+        expo_name: 'Green Life Expo 2024',
+        hall: 'Hall A',
+        zone: 'Zone 1',
+        aisle: 'A1',
+        booth_type: 'Premium',
+        size_sqm: 100,
+        width_m: 10,
+        length_m: 10,
+        status: 'Booked',
+        base_price: 5000,
+        total_price: 5500,
+        currency: 'USD',
+        assigned_to_company: 'EcoTech Solutions',
+        assigned_to_contact: 'John Smith',
+        features: ['Premium Location', 'Corner Booth', 'High Traffic Area'],
+        power_supply: '220V/16A',
+        internet_access: true,
+        description: 'Premium corner booth with high visibility and foot traffic',
+        created_at: '2024-01-01T10:00:00Z'
+      },
+      {
+        id: 'booth-2',
+        booth_number: 'A002',
+        booth_code: 'GLE2024-A002',
+        exhibition_id: 'expo-1',
+        expo_name: 'Green Life Expo 2024',
+        hall: 'Hall A',
+        zone: 'Zone 1',
+        aisle: 'A1',
+        booth_type: 'Standard',
+        size_sqm: 50,
+        width_m: 5,
+        length_m: 10,
+        status: 'Reserved',
+        base_price: 2500,
+        total_price: 2750,
+        currency: 'USD',
+        assigned_to_company: 'Green Energy Alliance',
+        assigned_to_contact: 'Sarah Johnson',
+        features: ['Standard Location', 'Good Visibility'],
+        power_supply: '220V/10A',
+        internet_access: true,
+        description: 'Standard booth with good location and visibility',
+        created_at: '2024-01-02T10:00:00Z'
+      },
+      {
+        id: 'booth-3',
+        booth_number: 'B001',
+        booth_code: 'TIS2024-B001',
+        exhibition_id: 'expo-2',
+        expo_name: 'Tech Innovation Summit 2024',
+        hall: 'Hall B',
+        zone: 'Zone 2',
+        aisle: 'B1',
+        booth_type: 'Island',
+        size_sqm: 200,
+        width_m: 10,
+        length_m: 20,
+        status: 'Available',
+        base_price: 8000,
+        total_price: 8800,
+        currency: 'USD',
+        features: ['Island Booth', '360° Access', 'Premium Location'],
+        power_supply: '380V/32A',
+        internet_access: true,
+        description: 'Large island booth with 360-degree access and premium location',
+        created_at: '2024-01-03T10:00:00Z'
+      },
+      {
+        id: 'booth-4',
+        booth_number: 'B002',
+        booth_code: 'TIS2024-B002',
+        exhibition_id: 'expo-2',
+        expo_name: 'Tech Innovation Summit 2024',
+        hall: 'Hall B',
+        zone: 'Zone 2',
+        aisle: 'B2',
+        booth_type: 'Corner',
+        size_sqm: 75,
+        width_m: 7.5,
+        length_m: 10,
+        status: 'Available',
+        base_price: 3750,
+        total_price: 4125,
+        currency: 'USD',
+        features: ['Corner Location', 'Two Open Sides', 'Good Traffic'],
+        power_supply: '220V/16A',
+        internet_access: true,
+        description: 'Corner booth with two open sides and good foot traffic',
+        created_at: '2024-01-04T10:00:00Z'
+      },
+      {
+        id: 'booth-5',
+        booth_number: 'C001',
+        booth_code: 'SFC2024-C001',
+        expo_name: 'Sustainable Future Conference',
+        hall: 'Hall C',
+        zone: 'Zone 3',
+        aisle: 'C1',
+        booth_type: 'Peninsula',
+        size_sqm: 150,
+        width_m: 10,
+        length_m: 15,
+        status: 'Maintenance',
+        base_price: 6000,
+        total_price: 6600,
+        currency: 'USD',
+        features: ['Peninsula Booth', 'Three Open Sides', 'High Visibility'],
+        power_supply: '220V/25A',
+        internet_access: true,
+        description: 'Peninsula booth under maintenance - three open sides with high visibility',
+        created_at: '2024-01-05T10:00:00Z'
+      }
+    ];
+  }
+
   private getMockDeals(): Deal[] {
     return [
       {
@@ -393,6 +667,14 @@ export const dealService = {
   create: (deal: Partial<Deal>) => new SupabaseService().createDeal(deal),
   update: (id: string, updates: Partial<Deal>) => new SupabaseService().updateDeal(id, updates),
   delete: (id: string) => new SupabaseService().deleteDeal(id)
+};
+
+export const boothService = {
+  getAll: () => new SupabaseService().getAllBooths(),
+  create: (booth: Partial<Booth>) => new SupabaseService().createBooth(booth),
+  update: (id: string, updates: Partial<Booth>) => new SupabaseService().updateBooth(id, updates),
+  updateStatus: (id: string, status: string) => new SupabaseService().updateBoothStatus(id, status),
+  delete: (id: string) => new SupabaseService().deleteBooth(id)
 };
 
 export const clientService = {

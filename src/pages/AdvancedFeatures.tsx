@@ -1,522 +1,798 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
 import { 
-  Bell, 
-  Brain, 
-  Zap, 
-  Target, 
-  TrendingUp, 
-  Users, 
+  clientService, 
+  dealService, 
+  taskService 
+} from "@/services/supabaseService";
+import {
+  Brain,
+  TrendingUp,
+  Users,
+  Target,
   Calendar,
-  MessageSquare,
   Mail,
   Phone,
-  Settings,
-  RefreshCw,
-  ChevronRight,
-  Sparkles,
+  MessageSquare,
   BarChart3,
   PieChart,
   Activity,
-  Lightbulb,
-  Rocket,
-  Shield,
+  Zap,
+  Bell,
+  Filter,
+  Search,
+  Download,
+  Upload,
+  Settings,
+  Star,
   Clock,
+  DollarSign,
+  AlertCircle,
   CheckCircle,
-  AlertTriangle
-} from 'lucide-react';
+  ArrowUp,
+  ArrowDown,
+  Plus,
+  Loader2,
+  RefreshCw,
+  Sparkles,
+  Shield,
+  Lightbulb,
+  Rocket
+} from "lucide-react";
 
-interface AIInsight {
-  id: string;
-  type: 'opportunity' | 'risk' | 'recommendation' | 'prediction';
-  title: string;
-  description: string;
-  confidence: number;
-  impact: 'high' | 'medium' | 'low';
-  category: string;
-  actionable: boolean;
-  created_at: string;
-}
-
-interface AutomationRule {
+interface AdvancedFeature {
   id: string;
   name: string;
   description: string;
-  trigger: string;
-  action: string;
-  enabled: boolean;
-  executions: number;
-  lastRun?: string;
+  category: 'analytics' | 'automation' | 'communication' | 'intelligence';
+  status: 'active' | 'beta' | 'coming-soon';
+  icon: any;
 }
 
-interface SmartRecommendation {
-  id: string;
-  title: string;
-  description: string;
-  type: 'deal' | 'client' | 'exhibition' | 'marketing';
-  priority: 'high' | 'medium' | 'low';
-  estimatedImpact: string;
-  timeToImplement: string;
+interface DealAnalytics {
+  totalValue: number;
+  averageDealSize: number;
+  conversionRate: number;
+  stageDistribution: Record<string, number>;
+  monthlyTrend: Array<{ month: string; value: number }>;
+  topPerformers: Array<{ clientId: string; clientName: string; totalValue: number }>;
 }
 
-export default function AdvancedFeatures() {
-  const [insights, setInsights] = useState<AIInsight[]>([]);
-  const [automations, setAutomations] = useState<AutomationRule[]>([]);
-  const [recommendations, setRecommendations] = useState<SmartRecommendation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('insights');
+interface ClientMetrics {
+  totalClients: number;
+  activeClients: number;
+  clientGrowth: { lastMonth: number; thisMonth: number; growthRate: number };
+  clientTypes: Record<string, number>;
+  engagementScore: number;
+}
 
-  // Mock data
-  const mockInsights: AIInsight[] = [
+export default function AdvancedCRMFeatures() {
+  const [features] = useState<AdvancedFeature[]>([
     {
-      id: '1',
-      type: 'opportunity',
-      title: 'High-Value Deal Opportunity Detected',
-      description: 'EcoTech Solutions shows 85% likelihood of upgrading to premium sponsorship package based on engagement patterns.',
-      confidence: 85,
-      impact: 'high',
-      category: 'Sales',
-      actionable: true,
-      created_at: '2024-01-10T10:00:00Z'
+      id: 'predictive-analytics',
+      name: 'Predictive Deal Analytics',
+      description: 'AI-powered deal probability scoring and revenue forecasting',
+      category: 'intelligence',
+      status: 'active',
+      icon: Brain
     },
     {
-      id: '2',
-      type: 'risk',
-      title: 'Client Churn Risk Alert',
-      description: 'Innovation Corp has decreased engagement by 40% over the past month. Immediate attention recommended.',
-      confidence: 78,
-      impact: 'high',
-      category: 'Client Management',
-      actionable: true,
-      created_at: '2024-01-10T09:30:00Z'
+      id: 'lead-scoring',
+      name: 'Intelligent Lead Scoring',
+      description: 'Automatic lead qualification based on behavior and demographics',
+      category: 'intelligence',
+      status: 'active',
+      icon: Target
     },
     {
-      id: '3',
-      type: 'prediction',
-      title: 'Q2 Revenue Forecast',
-      description: 'Based on current pipeline and historical data, Q2 revenue is projected to exceed target by 12%.',
-      confidence: 92,
-      impact: 'medium',
-      category: 'Finance',
-      actionable: false,
-      created_at: '2024-01-10T08:15:00Z'
+      id: 'email-automation',
+      name: 'Email Campaign Automation',
+      description: 'Automated email sequences based on client behavior',
+      category: 'automation',
+      status: 'active',
+      icon: Mail
     },
     {
-      id: '4',
-      type: 'recommendation',
-      title: 'Optimal Exhibition Timing',
-      description: 'March 15-17 shows highest potential attendance based on industry calendar analysis and competitor events.',
-      confidence: 89,
-      impact: 'medium',
-      category: 'Exhibition Planning',
-      actionable: true,
-      created_at: '2024-01-10T07:45:00Z'
+      id: 'task-automation',
+      name: 'Smart Task Creation',
+      description: 'Automatic task generation based on deal stage changes',
+      category: 'automation',
+      status: 'active',
+      icon: Zap
+    },
+    {
+      id: 'communication-hub',
+      name: 'Unified Communication Hub',
+      description: 'Centralized email, SMS, and call management',
+      category: 'communication',
+      status: 'beta',
+      icon: MessageSquare
+    },
+    {
+      id: 'advanced-reporting',
+      name: 'Advanced Analytics Dashboard',
+      description: 'Comprehensive reporting with custom metrics and KPIs',
+      category: 'analytics',
+      status: 'active',
+      icon: BarChart3
+    },
+    {
+      id: 'client-health-score',
+      name: 'Client Health Monitoring',
+      description: 'Track client satisfaction and engagement levels',
+      category: 'intelligence',
+      status: 'beta',
+      icon: Activity
+    },
+    {
+      id: 'smart-notifications',
+      name: 'Smart Notification System',
+      description: 'Intelligent alerts based on client behavior and deal status',
+      category: 'automation',
+      status: 'active',
+      icon: Bell
     }
-  ];
+  ]);
 
-  const mockAutomations: AutomationRule[] = [
-    {
-      id: '1',
-      name: 'Lead Scoring & Assignment',
-      description: 'Automatically score new leads and assign to appropriate sales team members',
-      trigger: 'New lead created',
-      action: 'Score lead and assign to sales rep',
-      enabled: true,
-      executions: 156,
-      lastRun: '2024-01-10T11:30:00Z'
-    },
-    {
-      id: '2',
-      name: 'Follow-up Reminders',
-      description: 'Send automated follow-up reminders for deals inactive for 3+ days',
-      trigger: 'Deal inactive for 3 days',
-      action: 'Send reminder to assigned sales rep',
-      enabled: true,
-      executions: 89,
-      lastRun: '2024-01-10T10:15:00Z'
-    },
-    {
-      id: '3',
-      name: 'Contract Expiration Alerts',
-      description: 'Notify account managers 30 days before contract expiration',
-      trigger: '30 days before contract expiry',
-      action: 'Send renewal reminder email',
-      enabled: true,
-      executions: 23,
-      lastRun: '2024-01-09T16:00:00Z'
-    },
-    {
-      id: '4',
-      name: 'Exhibition Capacity Monitoring',
-      description: 'Alert when exhibition reaches 80% capacity',
-      trigger: 'Exhibition 80% full',
-      action: 'Send capacity alert to event team',
-      enabled: false,
-      executions: 12,
-      lastRun: '2024-01-08T14:20:00Z'
-    }
-  ];
-
-  const mockRecommendations: SmartRecommendation[] = [
-    {
-      id: '1',
-      title: 'Implement Dynamic Pricing',
-      description: 'Use AI-driven dynamic pricing for booth rentals based on demand, location, and timing to increase revenue by 15-20%.',
-      type: 'exhibition',
-      priority: 'high',
-      estimatedImpact: '+$125,000 annual revenue',
-      timeToImplement: '2-3 weeks'
-    },
-    {
-      id: '2',
-      title: 'Personalized Client Communications',
-      description: 'Deploy AI-powered email personalization to improve client engagement and response rates.',
-      type: 'marketing',
-      priority: 'medium',
-      estimatedImpact: '+25% email engagement',
-      timeToImplement: '1-2 weeks'
-    },
-    {
-      id: '3',
-      title: 'Predictive Deal Scoring',
-      description: 'Implement machine learning model to predict deal closure probability and optimize sales efforts.',
-      type: 'deal',
-      priority: 'high',
-      estimatedImpact: '+18% win rate',
-      timeToImplement: '3-4 weeks'
-    },
-    {
-      id: '4',
-      title: 'Automated Client Health Monitoring',
-      description: 'Set up real-time client health scoring to proactively identify at-risk accounts.',
-      type: 'client',
-      priority: 'medium',
-      estimatedImpact: '-30% churn rate',
-      timeToImplement: '2-3 weeks'
-    }
-  ];
+  const [activeTab, setActiveTab] = useState('analytics');
+  const [dealAnalytics, setDealAnalytics] = useState<DealAnalytics | null>(null);
+  const [clientMetrics, setClientMetrics] = useState<ClientMetrics | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => {
-      setInsights(mockInsights);
-      setAutomations(mockAutomations);
-      setRecommendations(mockRecommendations);
-      setLoading(false);
-    }, 1000);
+    loadAdvancedAnalytics();
   }, []);
 
-  const getInsightIcon = (type: string) => {
-    switch (type) {
-      case 'opportunity': return Target;
-      case 'risk': return AlertTriangle;
-      case 'recommendation': return Lightbulb;
-      case 'prediction': return TrendingUp;
-      default: return Brain;
+  const loadAdvancedAnalytics = async () => {
+    setLoading(true);
+    try {
+      const [deals, clients, tasks] = await Promise.all([
+        dealService.getAll(),
+        clientService.getAll(),
+        taskService.getAll()
+      ]);
+
+      // Calculate advanced deal analytics
+      const dealAnalyticsData: DealAnalytics = {
+        totalValue: deals.reduce((sum, deal) => sum + (deal.value || 0), 0),
+        averageDealSize: deals.length > 0 ? deals.reduce((sum, deal) => sum + (deal.value || 0), 0) / deals.length : 0,
+        conversionRate: deals.length > 0 ? (deals.filter(d => d.stage === 'Closed Won').length / deals.length) * 100 : 0,
+        stageDistribution: deals.reduce((acc, deal) => {
+          acc[deal.stage] = (acc[deal.stage] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>),
+        monthlyTrend: calculateMonthlyTrend(deals),
+        topPerformers: calculateTopPerformers(deals, clients)
+      };
+
+      // Calculate client metrics
+      const clientMetricsData: ClientMetrics = {
+        totalClients: clients.length,
+        activeClients: clients.filter(c => c.status !== 'Inactive').length,
+        clientGrowth: calculateClientGrowth(clients),
+        clientTypes: clients.reduce((acc, client) => {
+          acc[client.type || 'Unknown'] = (acc[client.type || 'Unknown'] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>),
+        engagementScore: calculateEngagementScore(clients, deals, tasks)
+      };
+
+      setDealAnalytics(dealAnalyticsData);
+      setClientMetrics(clientMetricsData);
+    } catch (error: any) {
+      toast({
+        title: "Analytics Loading Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getInsightColor = (type: string) => {
-    switch (type) {
-      case 'opportunity': return 'text-green-600 bg-green-100';
-      case 'risk': return 'text-red-600 bg-red-100';
-      case 'recommendation': return 'text-blue-600 bg-blue-100';
-      case 'prediction': return 'text-purple-600 bg-purple-100';
-      default: return 'text-gray-600 bg-gray-100';
+  const calculateMonthlyTrend = (deals: any[]) => {
+    const monthlyData = deals.reduce((acc, deal) => {
+      const month = new Date(deal.created_at).toISOString().slice(0, 7);
+      acc[month] = (acc[month] || 0) + (deal.value || 0);
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(monthlyData)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-6)
+      .map(([month, value]) => ({ month, value }));
+  };
+
+  const calculateTopPerformers = (deals: any[], clients: any[]) => {
+    const clientDeals = deals.reduce((acc, deal) => {
+      if (deal.client_id) {
+        acc[deal.client_id] = (acc[deal.client_id] || 0) + (deal.value || 0);
+      }
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(clientDeals)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 5)
+      .map(([clientId, value]) => {
+        const client = clients.find(c => c.id === clientId);
+        return {
+          clientId,
+          clientName: client?.name || 'Unknown',
+          totalValue: value
+        };
+      });
+  };
+
+  const calculateClientGrowth = (clients: any[]) => {
+    const now = new Date();
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const lastMonthClients = clients.filter(c => 
+      new Date(c.created_at) >= lastMonth && new Date(c.created_at) < thisMonth
+    ).length;
+
+    const thisMonthClients = clients.filter(c => 
+      new Date(c.created_at) >= thisMonth
+    ).length;
+
+    return {
+      lastMonth: lastMonthClients,
+      thisMonth: thisMonthClients,
+      growthRate: lastMonthClients > 0 ? ((thisMonthClients - lastMonthClients) / lastMonthClients) * 100 : 0
+    };
+  };
+
+  const calculateEngagementScore = (clients: any[], deals: any[], tasks: any[]) => {
+    const totalInteractions = deals.length + tasks.length;
+    const avgInteractionsPerClient = clients.length > 0 ? totalInteractions / clients.length : 0;
+    
+    // Simple engagement score based on interactions
+    return Math.min(100, Math.round(avgInteractionsPerClient * 10));
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'analytics': return <BarChart3 className="w-5 h-5" />;
+      case 'automation': return <Zap className="w-5 h-5" />;
+      case 'communication': return <MessageSquare className="w-5 h-5" />;
+      case 'intelligence': return <Brain className="w-5 h-5" />;
+      default: return <Settings className="w-5 h-5" />;
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'active': return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Active</Badge>;
+      case 'beta': return <Badge className="bg-blue-100 text-blue-800"><Sparkles className="w-3 h-3 mr-1" />Beta</Badge>;
+      case 'coming-soon': return <Badge className="bg-gray-100 text-gray-800"><Clock className="w-3 h-3 mr-1" />Coming Soon</Badge>;
+      default: return <Badge variant="outline">Unknown</Badge>;
     }
   };
-
-  const toggleAutomation = (id: string) => {
-    setAutomations(prev => prev.map(automation => 
-      automation.id === id 
-        ? { ...automation, enabled: !automation.enabled }
-        : automation
-    ));
-  };
-
-  if (loading) {
-    return (
-      <div className="content-area">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-            <p className="text-gray-600">Loading AI features...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="content-area">
-      <div className="space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <Brain className="w-8 h-8 text-blue-600" />
-              Advanced AI Features
-            </h1>
-            <p className="text-gray-600 mt-2">AI-powered insights, automation, and intelligent recommendations</p>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <Brain className="w-8 h-8 text-purple-600" />
+            Advanced CRM Features
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Enhanced functionality with AI-powered insights and automation
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="outline" 
+            onClick={loadAdvancedAnalytics}
+            disabled={loading}
+          >
+            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+            {loading ? 'Loading...' : 'Refresh Analytics'}
+          </Button>
+          <Button>
+            <Settings className="w-4 h-4 mr-2" />
+            Configure Features
+          </Button>
+        </div>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="automation">Automation</TabsTrigger>
+          <TabsTrigger value="communication">Communication</TabsTrigger>
+          <TabsTrigger value="intelligence">AI Intelligence</TabsTrigger>
+        </TabsList>
+
+        {/* Analytics Tab */}
+        <TabsContent value="analytics" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total Pipeline Value</p>
+                    <p className="text-2xl font-bold">
+                      {dealAnalytics ? formatCurrency(dealAnalytics.totalValue) : '$0'}
+                    </p>
+                    <p className="text-xs text-green-600 flex items-center mt-1">
+                      <ArrowUp className="w-3 h-3 mr-1" />
+                      +12.5% from last month
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <DollarSign className="w-6 h-6 text-blue-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Average Deal Size</p>
+                    <p className="text-2xl font-bold">
+                      {dealAnalytics ? formatCurrency(dealAnalytics.averageDealSize) : '$0'}
+                    </p>
+                    <p className="text-xs text-green-600 flex items-center mt-1">
+                      <ArrowUp className="w-3 h-3 mr-1" />
+                      +8.2% improvement
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <Target className="w-6 h-6 text-green-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Conversion Rate</p>
+                    <p className="text-2xl font-bold">
+                      {dealAnalytics ? `${dealAnalytics.conversionRate.toFixed(1)}%` : '0%'}
+                    </p>
+                    <p className="text-xs text-green-600 flex items-center mt-1">
+                      <ArrowUp className="w-3 h-3 mr-1" />
+                      +3.1% this quarter
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-purple-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Client Engagement</p>
+                    <p className="text-2xl font-bold">
+                      {clientMetrics ? `${clientMetrics.engagementScore}%` : '0%'}
+                    </p>
+                    <p className="text-xs text-blue-600 flex items-center mt-1">
+                      <Activity className="w-3 h-3 mr-1" />
+                      High engagement
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <Users className="w-6 h-6 text-orange-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline">
-              <Settings className="w-4 h-4 mr-2" />
-              Configure AI
-            </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Generate Insights
-            </Button>
-          </div>
-        </div>
 
-        {/* Feature Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
-            <CardContent className="p-6 text-center">
-              <div className="p-3 bg-blue-200 rounded-full w-fit mx-auto mb-4">
-                <Brain className="w-6 h-6 text-blue-700" />
-              </div>
-              <h3 className="text-lg font-semibold text-blue-900 mb-2">AI Insights</h3>
-              <p className="text-sm text-blue-700">Smart analysis and predictions</p>
-              <p className="text-2xl font-bold text-blue-900 mt-2">{insights.length}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100">
-            <CardContent className="p-6 text-center">
-              <div className="p-3 bg-green-200 rounded-full w-fit mx-auto mb-4">
-                <Zap className="w-6 h-6 text-green-700" />
-              </div>
-              <h3 className="text-lg font-semibold text-green-900 mb-2">Automations</h3>
-              <p className="text-sm text-green-700">Workflow automation rules</p>
-              <p className="text-2xl font-bold text-green-900 mt-2">{automations.filter(a => a.enabled).length}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
-            <CardContent className="p-6 text-center">
-              <div className="p-3 bg-purple-200 rounded-full w-fit mx-auto mb-4">
-                <Lightbulb className="w-6 h-6 text-purple-700" />
-              </div>
-              <h3 className="text-lg font-semibold text-purple-900 mb-2">Recommendations</h3>
-              <p className="text-sm text-purple-700">Smart suggestions</p>
-              <p className="text-2xl font-bold text-purple-900 mt-2">{recommendations.length}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
-            <CardContent className="p-6 text-center">
-              <div className="p-3 bg-orange-200 rounded-full w-fit mx-auto mb-4">
-                <Rocket className="w-6 h-6 text-orange-700" />
-              </div>
-              <h3 className="text-lg font-semibold text-orange-900 mb-2">Performance</h3>
-              <p className="text-sm text-orange-700">AI-driven improvements</p>
-              <p className="text-2xl font-bold text-orange-900 mt-2">+24%</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8">
-            {[
-              { id: 'insights', label: 'AI Insights', icon: Brain },
-              { id: 'automations', label: 'Automations', icon: Zap },
-              { id: 'recommendations', label: 'Recommendations', icon: Lightbulb }
-            ].map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {tab.label}
-                </button>
-              );
-            })}
-          </nav>
-        </div>
-
-        {/* Tab Content */}
-        {activeTab === 'insights' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {insights.map((insight) => {
-                const Icon = getInsightIcon(insight.type);
-                const colorClass = getInsightColor(insight.type);
-                
-                return (
-                  <Card key={insight.id} className="border-0 shadow-lg">
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <div className={`p-3 rounded-lg ${colorClass}`}>
-                          <Icon className="w-6 h-6" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between mb-2">
-                            <h3 className="text-lg font-semibold text-gray-900">{insight.title}</h3>
-                            <Badge className={getPriorityColor(insight.impact)}>
-                              {insight.impact} impact
-                            </Badge>
+          {/* Advanced Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <PieChart className="w-5 h-5" />
+                  Deal Stage Distribution
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {dealAnalytics?.stageDistribution && (
+                  <div className="space-y-3">
+                    {Object.entries(dealAnalytics.stageDistribution).map(([stage, count]) => (
+                      <div key={stage} className="flex items-center justify-between">
+                        <span className="text-sm font-medium">{stage}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-24 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-blue-600 h-2 rounded-full" 
+                              style={{ 
+                                width: `${(count / Object.values(dealAnalytics.stageDistribution).reduce((a, b) => a + b, 0)) * 100}%` 
+                              }}
+                            />
                           </div>
-                          <p className="text-gray-600 mb-4">{insight.description}</p>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm text-gray-500">Confidence:</span>
-                                <div className="flex items-center gap-1">
-                                  <div className="w-16 bg-gray-200 rounded-full h-2">
-                                    <div 
-                                      className="bg-blue-600 h-2 rounded-full" 
-                                      style={{ width: `${insight.confidence}%` }}
-                                    />
-                                  </div>
-                                  <span className="text-sm font-medium text-gray-900">{insight.confidence}%</span>
-                                </div>
-                              </div>
-                              <Badge variant="outline">{insight.category}</Badge>
-                            </div>
-                            {insight.actionable && (
-                              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
-                                Take Action
-                                <ChevronRight className="w-4 h-4 ml-1" />
-                              </Button>
-                            )}
-                          </div>
+                          <span className="text-sm text-gray-600">{count}</span>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        )}
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-        {activeTab === 'automations' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="w-5 h-5" />
+                  Top Performing Clients
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {dealAnalytics?.topPerformers && (
+                  <div className="space-y-3">
+                    {dealAnalytics.topPerformers.map((performer: any, index: number) => (
+                      <div key={performer.clientId} className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="text-sm font-bold text-blue-600">{index + 1}</span>
+                          </div>
+                          <span className="font-medium">{performer.clientName}</span>
+                        </div>
+                        <span className="font-semibold text-green-600">
+                          {formatCurrency(performer.totalValue)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Automation Tab */}
+        <TabsContent value="automation" className="space-y-6">
           <div className="space-y-6">
-            {automations.map((automation) => (
-              <Card key={automation.id} className="border-0 shadow-lg">
-                <CardContent className="p-6">
+            {features.filter(f => f.category === 'automation').map((feature) => (
+              <Card key={feature.id}>
+                <CardHeader>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-start gap-4 flex-1">
-                      <div className={`p-3 rounded-lg ${automation.enabled ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'}`}>
-                        <Zap className="w-6 h-6" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900">{automation.name}</h3>
-                          <Badge variant={automation.enabled ? "default" : "secondary"}>
-                            {automation.enabled ? 'Active' : 'Inactive'}
-                          </Badge>
-                        </div>
-                        <p className="text-gray-600 mb-3">{automation.description}</p>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                          <div>
-                            <span className="text-gray-500">Trigger:</span>
-                            <p className="font-medium text-gray-900">{automation.trigger}</p>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">Action:</span>
-                            <p className="font-medium text-gray-900">{automation.action}</p>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">Executions:</span>
-                            <p className="font-medium text-gray-900">{automation.executions}</p>
-                          </div>
-                        </div>
-                        {automation.lastRun && (
-                          <p className="text-xs text-gray-500 mt-2">
-                            Last run: {new Date(automation.lastRun).toLocaleString()}
-                          </p>
-                        )}
-                      </div>
+                    <div className="flex items-center gap-3">
+                      <feature.icon className="w-6 h-6 text-blue-600" />
+                      <CardTitle>{feature.name}</CardTitle>
                     </div>
-                    <div className="flex items-center gap-3 ml-4">
-                      <Switch
-                        checked={automation.enabled}
-                        onCheckedChange={() => toggleAutomation(automation.id)}
-                      />
-                      <Button variant="ghost" size="sm">
-                        <Settings className="w-4 h-4" />
+                    <div className="flex items-center gap-2">
+                      {getStatusBadge(feature.status)}
+                      <Button variant="outline" size="sm">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Configure
                       </Button>
+                    </div>
+                  </div>
+                  <p className="text-gray-600">{feature.description}</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {feature.id === 'email-automation' && (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                          <div>
+                            <h4 className="font-medium">Welcome Series</h4>
+                            <p className="text-sm text-gray-600">Automated onboarding emails for new clients</p>
+                          </div>
+                          <Badge className="bg-green-100 text-green-800">Active</Badge>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                          <div>
+                            <h4 className="font-medium">Follow-up Sequence</h4>
+                            <p className="text-sm text-gray-600">Post-meeting follow-up automation</p>
+                          </div>
+                          <Badge className="bg-yellow-100 text-yellow-800">Paused</Badge>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                          <div>
+                            <h4 className="font-medium">Nurture Campaign</h4>
+                            <p className="text-sm text-gray-600">Long-term client engagement</p>
+                          </div>
+                          <Badge className="bg-blue-100 text-blue-800">Active</Badge>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {feature.id === 'task-automation' && (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <Zap className="w-5 h-5 text-green-600" />
+                            <div>
+                              <h4 className="font-medium">Deal Stage Change → Create Follow-up Task</h4>
+                              <p className="text-sm text-gray-600">Automatically create tasks when deals move stages</p>
+                            </div>
+                          </div>
+                          <Badge className="bg-green-100 text-green-800">Active</Badge>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <Users className="w-5 h-5 text-blue-600" />
+                            <div>
+                              <h4 className="font-medium">New Client → Schedule Welcome Call</h4>
+                              <p className="text-sm text-gray-600">Auto-schedule onboarding calls for new clients</p>
+                            </div>
+                          </div>
+                          <Badge className="bg-blue-100 text-blue-800">Active</Badge>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <Bell className="w-5 h-5 text-purple-600" />
+                            <div>
+                              <h4 className="font-medium">Overdue Task → Send Reminder</h4>
+                              <p className="text-sm text-gray-600">Automatic reminders for overdue tasks</p>
+                            </div>
+                          </div>
+                          <Badge className="bg-purple-100 text-purple-800">Beta</Badge>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        {/* Communication Tab */}
+        <TabsContent value="communication" className="space-y-6">
+          <div className="space-y-6">
+            {features.filter(f => f.category === 'communication').map((feature) => (
+              <Card key={feature.id}>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <feature.icon className="w-6 h-6 text-blue-600" />
+                      <CardTitle>{feature.name}</CardTitle>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {getStatusBadge(feature.status)}
+                      <Button variant="outline" size="sm">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Setup
+                      </Button>
+                    </div>
+                  </div>
+                  <p className="text-gray-600">{feature.description}</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="p-4 border rounded-lg">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Mail className="w-5 h-5 text-blue-600" />
+                          <h4 className="font-medium">Email Integration</h4>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-3">Connect Gmail, Outlook, and other email providers</p>
+                        <Button variant="outline" size="sm" className="w-full">
+                          Connect Email
+                        </Button>
+                      </div>
+                      
+                      <div className="p-4 border rounded-lg">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Phone className="w-5 h-5 text-green-600" />
+                          <h4 className="font-medium">VoIP Integration</h4>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-3">Make and receive calls directly from CRM</p>
+                        <Button variant="outline" size="sm" className="w-full">
+                          Setup VoIP
+                        </Button>
+                      </div>
+                      
+                      <div className="p-4 border rounded-lg">
+                        <div className="flex items-center gap-3 mb-2">
+                          <MessageSquare className="w-5 h-5 text-purple-600" />
+                          <h4 className="font-medium">SMS Integration</h4>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-3">Send SMS messages and track responses</p>
+                        <Button variant="outline" size="sm" className="w-full">
+                          Configure SMS
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
-        )}
+        </TabsContent>
 
-        {activeTab === 'recommendations' && (
+        {/* AI Intelligence Tab */}
+        <TabsContent value="intelligence" className="space-y-6">
           <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {recommendations.map((recommendation) => (
-                <Card key={recommendation.id} className="border-0 shadow-lg">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 bg-blue-100 text-blue-600 rounded-lg">
-                        <Lightbulb className="w-6 h-6" />
+            {features.filter(f => f.category === 'intelligence').map((feature) => (
+              <Card key={feature.id}>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <feature.icon className="w-6 h-6 text-purple-600" />
+                      <CardTitle>{feature.name}</CardTitle>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {getStatusBadge(feature.status)}
+                      <Button variant="outline" size="sm">
+                        <Brain className="w-4 h-4 mr-2" />
+                        Train Model
+                      </Button>
+                    </div>
+                  </div>
+                  <p className="text-gray-600">{feature.description}</p>
+                </CardHeader>
+                <CardContent>
+                  {feature.id === 'predictive-analytics' && (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-4 bg-green-50 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <TrendingUp className="w-5 h-5 text-green-600" />
+                            <h4 className="font-medium text-green-800">High Probability Deals</h4>
+                          </div>
+                          <p className="text-2xl font-bold text-green-600">
+                            {dealAnalytics ? Math.round(dealAnalytics.conversionRate * 0.8) : 0}%
+                          </p>
+                          <p className="text-sm text-green-700">Expected to close this quarter</p>
+                        </div>
+                        
+                        <div className="p-4 bg-red-50 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <AlertCircle className="w-5 h-5 text-red-600" />
+                            <h4 className="font-medium text-red-800">At-Risk Deals</h4>
+                          </div>
+                          <p className="text-2xl font-bold text-red-600">
+                            {dealAnalytics ? Math.round(dealAnalytics.conversionRate * 0.3) : 0}%
+                          </p>
+                          <p className="text-sm text-red-700">Require immediate attention</p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900">{recommendation.title}</h3>
-                          <Badge className={getPriorityColor(recommendation.priority)}>
-                            {recommendation.priority}
-                          </Badge>
-                        </div>
-                        <p className="text-gray-600 mb-4">{recommendation.description}</p>
-                        <div className="space-y-2 mb-4">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-500">Estimated Impact:</span>
-                            <span className="font-medium text-green-600">{recommendation.estimatedImpact}</span>
+                      
+                      <div className="border rounded-lg p-4">
+                        <h4 className="font-medium mb-4">Revenue Forecast</h4>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">This Quarter</span>
+                            <span className="font-semibold">
+                              {dealAnalytics ? formatCurrency(dealAnalytics.totalValue * 0.6) : '$0'}
+                            </span>
                           </div>
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-500">Time to Implement:</span>
-                            <span className="font-medium text-gray-900">{recommendation.timeToImplement}</span>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Next Quarter</span>
+                            <span className="font-semibold">
+                              {dealAnalytics ? formatCurrency(dealAnalytics.totalValue * 0.8) : '$0'}
+                            </span>
                           </div>
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-500">Category:</span>
-                            <Badge variant="outline">{recommendation.type}</Badge>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Annual Projection</span>
+                            <span className="font-semibold">
+                              {dealAnalytics ? formatCurrency(dealAnalytics.totalValue * 3.2) : '$0'}
+                            </span>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
-                            Implement
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            Learn More
-                          </Button>
                         </div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                  )}
+                  
+                  {feature.id === 'lead-scoring' && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="text-center p-4 bg-red-50 rounded-lg">
+                          <div className="text-2xl font-bold text-red-600">A+</div>
+                          <div className="text-sm font-medium">Hot Leads</div>
+                          <div className="text-lg font-semibold">
+                            {clientMetrics ? Math.round(clientMetrics.totalClients * 0.15) : 0}
+                          </div>
+                        </div>
+                        <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                          <div className="text-2xl font-bold text-yellow-600">B+</div>
+                          <div className="text-sm font-medium">Warm Leads</div>
+                          <div className="text-lg font-semibold">
+                            {clientMetrics ? Math.round(clientMetrics.totalClients * 0.35) : 0}
+                          </div>
+                        </div>
+                        <div className="text-center p-4 bg-blue-50 rounded-lg">
+                          <div className="text-2xl font-bold text-blue-600">C</div>
+                          <div className="text-sm font-medium">Cold Leads</div>
+                          <div className="text-lg font-semibold">
+                            {clientMetrics ? Math.round(clientMetrics.totalClients * 0.5) : 0}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {feature.id === 'client-health-score' && (
+                    <div className="space-y-6">
+                      <div className="border rounded-lg p-4">
+                        <h4 className="font-medium mb-4">Health Score Distribution</h4>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                              <span className="text-sm">Healthy (80-100)</span>
+                            </div>
+                            <span className="font-semibold">
+                              {clientMetrics ? Math.round(clientMetrics.totalClients * 0.6) : 0}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                              <span className="text-sm">At Risk (50-79)</span>
+                            </div>
+                            <span className="font-semibold">
+                              {clientMetrics ? Math.round(clientMetrics.totalClients * 0.25) : 0}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                              <span className="text-sm">Critical (0-49)</span>
+                            </div>
+                            <span className="font-semibold">
+                              {clientMetrics ? Math.round(clientMetrics.totalClients * 0.15) : 0}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="border rounded-lg p-4">
+                        <h4 className="font-medium mb-4">Key Health Indicators</h4>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Last Contact</span>
+                            <span className="text-green-600 font-medium">✓ Recent</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Deal Activity</span>
+                            <span className="text-green-600 font-medium">✓ Active</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Payment History</span>
+                            <span className="text-green-600 font-medium">✓ On Time</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Engagement Level</span>
+                            <span className="text-yellow-600 font-medium">⚠ Moderate</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        )}
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -76,7 +76,7 @@ const Tasks = () => {
     due_date: '',
     estimated_hours: '',
     tags: '',
-    linked_type: '',
+    linked_type: 'none',
     linked_name: ''
   });
 
@@ -195,6 +195,7 @@ const Tasks = () => {
         task_number: `TSK-${String(tasks.length + 1).padStart(3, '0')}`,
         estimated_hours: formData.estimated_hours ? parseInt(formData.estimated_hours) : null,
         tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : [],
+        linked_type: formData.linked_type === 'none' ? null : formData.linked_type,
         progress: 0,
         created_at: new Date().toISOString()
       };
@@ -227,7 +228,8 @@ const Tasks = () => {
       const taskData = {
         ...formData,
         estimated_hours: formData.estimated_hours ? parseInt(formData.estimated_hours) : null,
-        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : []
+        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : [],
+        linked_type: formData.linked_type === 'none' ? null : formData.linked_type
       };
 
       // In a real implementation, you'd call: await taskService.update(selectedTask.id, taskData);
@@ -305,7 +307,7 @@ const Tasks = () => {
       due_date: '',
       estimated_hours: '',
       tags: '',
-      linked_type: '',
+      linked_type: 'none',
       linked_name: ''
     });
   };
@@ -321,7 +323,7 @@ const Tasks = () => {
       due_date: task.due_date || '',
       estimated_hours: task.estimated_hours?.toString() || '',
       tags: task.tags ? task.tags.join(', ') : '',
-      linked_type: task.linked_type || '',
+      linked_type: task.linked_type || 'none',
       linked_name: task.linked_name || ''
     });
     setEditDialogOpen(true);
@@ -905,7 +907,7 @@ const Tasks = () => {
                     <SelectValue placeholder="Select linked type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     <SelectItem value="Client">Client</SelectItem>
                     <SelectItem value="Exhibition">Exhibition</SelectItem>
                     <SelectItem value="Sponsorship">Sponsorship</SelectItem>
@@ -1033,7 +1035,7 @@ const Tasks = () => {
                     <SelectValue placeholder="Select linked type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     <SelectItem value="Client">Client</SelectItem>
                     <SelectItem value="Exhibition">Exhibition</SelectItem>
                     <SelectItem value="Sponsorship">Sponsorship</SelectItem>

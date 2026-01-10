@@ -68,10 +68,10 @@ class SupabaseService {
   async getAllDeals(): Promise<Deal[]> {
     try {
       const { data, error } = await supabase
-        .from('deals')
+        .from('deals_2026_01_10_12_00')
         .select(`
           *,
-          clients:client_id (
+          clients_2026_01_10_12_00:client_id (
             id,
             name,
             email,
@@ -81,7 +81,7 @@ class SupabaseService {
             city,
             country
           ),
-          exhibitions:exhibition_id (
+          exhibitions_2026_01_10_12_00:exhibition_id (
             id,
             name,
             start_date,
@@ -94,8 +94,8 @@ class SupabaseService {
 
       return (data || []).map(deal => ({
         ...deal,
-        client_name: deal.clients?.name || 'Unknown Client',
-        client_info: deal.clients || {}
+        client_name: deal.clients_2026_01_10_12_00?.name || 'Unknown Client',
+        client_info: deal.clients_2026_01_10_12_00 || {}
       }));
     } catch (error) {
       console.error('Error fetching deals:', error);
@@ -107,7 +107,7 @@ class SupabaseService {
   async createDeal(deal: Partial<Deal>): Promise<Deal> {
     try {
       const { data, error } = await supabase
-        .from('deals')
+        .from('deals_2026_01_10_12_00')
         .insert([{
           ...deal,
           created_at: new Date().toISOString(),
@@ -127,7 +127,7 @@ class SupabaseService {
   async updateDeal(id: string, updates: Partial<Deal>): Promise<Deal> {
     try {
       const { data, error } = await supabase
-        .from('deals')
+        .from('deals_2026_01_10_12_00')
         .update({
           ...updates,
           updated_at: new Date().toISOString()
@@ -147,7 +147,7 @@ class SupabaseService {
   async deleteDeal(id: string): Promise<void> {
     try {
       const { error } = await supabase
-        .from('deals')
+        .from('deals_2026_01_10_12_00')
         .delete()
         .eq('id', id);
 
@@ -162,7 +162,7 @@ class SupabaseService {
   async getAllClients(): Promise<Client[]> {
     try {
       const { data, error } = await supabase
-        .from('clients')
+        .from('clients_2026_01_10_12_00')
         .select('*')
         .order('name', { ascending: true });
 
@@ -178,7 +178,7 @@ class SupabaseService {
   async getAllTasks(): Promise<Task[]> {
     try {
       const { data, error } = await supabase
-        .from('tasks')
+        .from('tasks_2026_01_10_12_00')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -194,7 +194,7 @@ class SupabaseService {
   async getAllExhibitions(): Promise<Exhibition[]> {
     try {
       const { data, error } = await supabase
-        .from('exhibitions')
+        .from('exhibitions_2026_01_10_12_00')
         .select('*')
         .order('start_date', { ascending: false });
 

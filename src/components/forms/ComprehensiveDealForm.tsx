@@ -48,6 +48,10 @@ const ComprehensiveDealForm: React.FC<ComprehensiveDealFormProps> = ({
   });
 
   const handleInputChange = (field: string, value: string) => {
+    // Handle special case for exhibition_id
+    if (field === 'exhibition_id' && value === 'none') {
+      value = '';
+    }
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -287,12 +291,12 @@ const ComprehensiveDealForm: React.FC<ComprehensiveDealFormProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="exhibition">Exhibition</Label>
-              <Select value={formData.exhibition_id} onValueChange={(value) => handleInputChange('exhibition_id', value)}>
+              <Select value={formData.exhibition_id || "none"} onValueChange={(value) => handleInputChange('exhibition_id', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select an exhibition" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No Exhibition</SelectItem>
+                  <SelectItem value="none">No Exhibition</SelectItem>
                   {exhibitions.map((exhibition) => (
                     <SelectItem key={exhibition.id} value={exhibition.id}>
                       {exhibition.name}

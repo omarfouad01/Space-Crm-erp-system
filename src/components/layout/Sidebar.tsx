@@ -8,6 +8,7 @@ import {
   FileText,
   SquareCheckBig,
   Ticket,
+  MessageSquare,
   ChartColumn,
   Brain,
   Bell,
@@ -51,6 +52,7 @@ const menuSections = [
     items: [
       { name: 'Contracts', path: '/contracts', icon: FileText, description: 'Legal documents' },
       { name: 'Tasks', path: '/tasks', icon: SquareCheckBig, description: 'Operations tasks' },
+      { name: 'Chat', path: '/chat', icon: MessageSquare, description: 'Team communication' },
       { name: 'Support', path: '/tickets', icon: Ticket, description: 'Client support' },
     ]
   },

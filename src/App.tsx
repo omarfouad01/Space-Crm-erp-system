@@ -15,6 +15,9 @@ import Tasks from '@/pages/Tasks';
 import Tickets from '@/pages/Tickets';
 import HR from '@/pages/HR';
 import Expos from '@/pages/Expos';
+import Booths from '@/pages/Booths';
+import Sponsorships from '@/pages/Sponsorships';
+import Payments from '@/pages/Payments';
 import Chat from '@/pages/Chat';
 import Settings from '@/pages/Settings';
 import Login from '@/pages/Login';
@@ -53,6 +56,9 @@ function App() {
           <Route path="/tickets" element={<Tickets />} />
           <Route path="/hr" element={<HR />} />
           <Route path="/expos" element={<Expos />} />
+          <Route path="/booths" element={<Booths />} />
+          <Route path="/sponsorships" element={<Sponsorships />} />
+          <Route path="/payments" element={<Payments />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/client-portal/*" element={<ClientPortal />} />

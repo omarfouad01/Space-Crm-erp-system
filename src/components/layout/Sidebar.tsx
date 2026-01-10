@@ -34,7 +34,7 @@ const menuSections = [
     title: 'Exhibition',
     items: [
       { name: 'Booths', path: '/booths', icon: Briefcase, description: 'Booth management' },
-      { name: 'Sponsors', path: '/sponsors', icon: Briefcase, description: 'Sponsorship deals' },
+      { name: 'Sponsorships', path: '/sponsorships', icon: Briefcase, description: 'Sponsorship packages' },
       { name: 'Exhibitors', path: '/exhibitors', icon: Briefcase, description: 'Exhibitor relations' },
     ]
   },

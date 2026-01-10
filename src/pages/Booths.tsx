@@ -452,12 +452,12 @@ export default function Booths() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="client_id">Client (Optional)</Label>
-            <Select value={formData.client_id} onValueChange={(value) => setFormData({...formData, client_id: value})}>
+            <Select value={formData.client_id || "none"} onValueChange={(value) => setFormData({...formData, client_id: value === "none" ? "" : value})}>
               <SelectTrigger>
                 <SelectValue placeholder="Select client (optional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No Client Assigned</SelectItem>
+                <SelectItem value="none">No Client Assigned</SelectItem>
                 {clients.map(client => (
                   <SelectItem key={client.id} value={client.id}>
                     {client.client_name} ({client.client_type})

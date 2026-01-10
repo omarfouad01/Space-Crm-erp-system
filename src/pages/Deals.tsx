@@ -427,12 +427,12 @@ export default function Deals() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="exhibition_id">Exhibition</Label>
-          <Select value={formData.exhibition_id} onValueChange={(value) => setFormData({...formData, exhibition_id: value})}>
+          <Select value={formData.exhibition_id || "none"} onValueChange={(value) => setFormData({...formData, exhibition_id: value === "none" ? "" : value})}>
             <SelectTrigger>
               <SelectValue placeholder="Select exhibition (optional)" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">No Exhibition</SelectItem>
+              <SelectItem value="none">No Exhibition</SelectItem>
               {exhibitions.map(exhibition => (
                 <SelectItem key={exhibition.id} value={exhibition.id}>
                   {exhibition.exhibition_name}

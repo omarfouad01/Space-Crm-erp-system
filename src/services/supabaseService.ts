@@ -34,9 +34,58 @@ export interface Client {
   phone?: string;
   company?: string;
   type?: string;
+  contact_person?: string;
+  website?: string;
+  industry?: string;
+  company_size?: string;
+  address?: string;
   city?: string;
   country?: string;
+  postal_code?: string;
+  status?: string;
+  notes?: string;
   created_at: string;
+  updated_at?: string;
+}
+
+// Enhanced client interfaces
+export interface ClientMetrics {
+  total_deals: number;
+  active_deals: number;
+  won_deals: number;
+  total_value: number;
+  won_value: number;
+  avg_deal_size: number;
+  conversion_rate: number;
+  lifetime_value: number;
+  open_tasks: number;
+  overdue_payments: number;
+  last_activity: string;
+  engagement_score: number;
+  satisfaction_score: number;
+  growth_trend: 'up' | 'down' | 'stable';
+}
+
+export interface ClientActivity {
+  id: string;
+  type: 'deal' | 'payment' | 'meeting' | 'email' | 'call' | 'task' | 'document';
+  title: string;
+  description: string;
+  timestamp: string;
+  status: string;
+  user: string;
+  priority?: 'high' | 'medium' | 'low';
+}
+
+export interface ClientDocument {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  uploaded_at: string;
+  uploaded_by: string;
+  status: 'draft' | 'signed' | 'pending' | 'expired';
+  category: 'contract' | 'proposal' | 'invoice' | 'other';
 }
 
 export interface Task {
@@ -322,6 +371,60 @@ class SupabaseService {
     } catch (error) {
       console.error('Error fetching clients:', error);
       return this.getMockClients();
+    }
+  }
+
+  async createClient(client: Partial<Client>): Promise<Client> {
+    try {
+      const { data, error } = await supabase
+        .from('clients_2026_01_10_12_00')
+        .insert([{
+          ...client,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating client:', error);
+      throw error;
+    }
+  }
+
+  async updateClient(id: string, updates: Partial<Client>): Promise<Client> {
+    try {
+      const { data, error } = await supabase
+        .from('clients_2026_01_10_12_00')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating client:', error);
+      throw error;
+    }
+  }
+
+  async deleteClient(id: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('clients_2026_01_10_12_00')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error deleting client:', error);
+      throw error;
     }
   }
 
@@ -678,7 +781,10 @@ export const boothService = {
 };
 
 export const clientService = {
-  getAll: () => new SupabaseService().getAllClients()
+  getAll: () => new SupabaseService().getAllClients(),
+  create: (client: Partial<Client>) => new SupabaseService().createClient(client),
+  update: (id: string, updates: Partial<Client>) => new SupabaseService().updateClient(id, updates),
+  delete: (id: string) => new SupabaseService().deleteClient(id)
 };
 
 export const taskService = {

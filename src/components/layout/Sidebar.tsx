@@ -18,6 +18,7 @@ import {
   Palette,
   LogOut,
   User,
+  Users,
   ChevronRight
 } from 'lucide-react';
 
@@ -50,6 +51,7 @@ const menuSections = [
   {
     title: 'Management',
     items: [
+      { name: 'HR & Team', path: '/hr', icon: Users, description: 'Human resources' },
       { name: 'Contracts', path: '/contracts', icon: FileText, description: 'Legal documents' },
       { name: 'Tasks', path: '/tasks', icon: SquareCheckBig, description: 'Operations tasks' },
       { name: 'Chat', path: '/chat', icon: MessageSquare, description: 'Team communication' },

@@ -15,6 +15,7 @@ import Tasks from '@/pages/Tasks';
 import Tickets from '@/pages/Tickets';
 import HR from '@/pages/HR';
 import Expos from '@/pages/Expos';
+import ExpoDetail from '@/pages/ExpoDetail';
 import Booths from '@/pages/Booths';
 import BoothDetail from '@/pages/BoothDetail';
 import Sponsorships from '@/pages/Sponsorships';
@@ -65,6 +66,7 @@ function App() {
           <Route path="/tickets" element={<Tickets />} />
           <Route path="/hr" element={<HR />} />
           <Route path="/expos" element={<Expos />} />
+          <Route path="/expos/:expoId" element={<ExpoDetail />} />
           <Route path="/booths" element={<Booths />} />
           <Route path="/booths/:boothId" element={<BoothDetail />} />
           <Route path="/sponsorships" element={<Sponsorships />} />

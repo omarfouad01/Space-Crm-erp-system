@@ -1,749 +1,695 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { 
-  Globe, 
-  Activity, 
-  Clock, 
-  Users, 
-  CheckCircle2, 
-  XCircle, 
-  DollarSign, 
-  Target,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Globe,
   Plus,
-  RefreshCw,
-  Download,
   Search,
   Filter,
+  MoreHorizontal,
   Calendar,
   MapPin,
-  Building,
-  MoreHorizontal,
+  Users,
+  User,
+  DollarSign,
+  Building2,
+  Trophy,
+  CheckCircle,
+  Clock,
+  AlertTriangle,
+  Eye,
   Edit,
   Trash2,
-  Eye
-} from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+  RefreshCw,
+  Download,
+  TrendingUp,
+  Activity,
+  Play,
+  Send,
+  CheckCircle2,
+  XCircle,
+  Pause,
+  BarChart3,
+  Target,
+  Zap,
+  Star,
+  Award,
+  Briefcase,
+  FileText,
+  Share2,
+  ExternalLink,
+  Loader2,
+  ArrowRight,
+  TrendingDown,
+  PieChart
+} from "lucide-react";
 
-interface Country {
+interface Expo {
   id: string;
+  expo_number: string;
   name: string;
-  code: string;
-}
-
-interface ExhibitionManager {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  department?: string;
-}
-
-interface Exhibition {
-  id: string;
-  exhibition_name: string;
-  status: string;
-  exhibition_manager_id?: string;
   description?: string;
+  theme?: string;
   start_date: string;
   end_date: string;
-  registration_start?: string;
-  registration_end?: string;
+  city?: string;
+  country?: string;
   venue_name?: string;
-  venue_capacity?: number;
-  venue_address?: string;
-  venue_city?: string;
-  venue_country_id?: string;
-  total_area_sqm?: number;
-  expected_visitors?: number;
-  website_url?: string;
-  organizer_name?: string;
-  organizer_email?: string;
-  organizer_phone?: string;
-  additional_notes?: string;
-  created_at: string;
-  exhibition_managers_2026_01_10?: ExhibitionManager;
-  countries_2026_01_10?: Country;
-}
-
-interface ExhibitionFormData {
-  exhibition_name: string;
   status: string;
-  exhibition_manager_id: string;
-  description: string;
-  start_date: string;
-  end_date: string;
-  registration_start: string;
-  registration_end: string;
-  venue_name: string;
-  venue_capacity: string;
-  venue_address: string;
-  venue_city: string;
-  venue_country_id: string;
-  total_area_sqm: string;
-  expected_visitors: string;
-  website_url: string;
-  organizer_name: string;
-  organizer_email: string;
-  organizer_phone: string;
-  additional_notes: string;
+  priority: string;
+  expected_visitors?: number;
+  booth_count?: number;
+  budget?: number;
+  manager_name?: string;
+  organizer_name?: string;
+  website_url?: string;
+  tags?: string[];
+  totalExhibitors?: number;
+  paidExhibitors?: number;
+  totalSponsors?: number;
+  totalRevenue?: number;
+  occupancyRate?: number;
+  created_at: string;
+  updated_at: string;
 }
 
-export default function Expos() {
+interface ExpoStats {
+  total: number;
+  active: number;
+  planning: number;
+  completed: number;
+  registration: number;
+  cancelled: number;
+  totalRevenue: number;
+  totalVisitors: number;
+}
+
+const Expos = () => {
   const { toast } = useToast();
-  const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [exhibitionManagers, setExhibitionManagers] = useState<ExhibitionManager[]>([]);
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all-status");
+  const [priorityFilter, setPriorityFilter] = useState("all-priority");
+  const [yearFilter, setYearFilter] = useState("all-years");
+  const [expos, setExpos] = useState<Expo[]>([]);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [isAddExhibitionOpen, setIsAddExhibitionOpen] = useState(false);
-  const [isEditExhibitionOpen, setIsEditExhibitionOpen] = useState(false);
-  const [editingExhibition, setEditingExhibition] = useState<Exhibition | null>(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [editingExpo, setEditingExpo] = useState<Expo | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [expoToDelete, setExpoToDelete] = useState<Expo | null>(null);
+  const [activeTab, setActiveTab] = useState('all');
 
-  // Exhibition statuses from system settings
-  const exhibitionStatuses = ['Planning', 'Registration Open', 'Active', 'Completed', 'Cancelled', 'Postponed'];
-
-  // Form data state
-  const [formData, setFormData] = useState<ExhibitionFormData>({
-    exhibition_name: '',
-    status: '',
-    exhibition_manager_id: '',
+  // Form states for create/edit
+  const [formData, setFormData] = useState({
+    name: '',
     description: '',
+    theme: '',
     start_date: '',
     end_date: '',
-    registration_start: '',
-    registration_end: '',
+    city: '',
+    country: '',
     venue_name: '',
-    venue_capacity: '',
-    venue_address: '',
-    venue_city: '',
-    venue_country_id: '',
-    total_area_sqm: '',
+    status: 'Planning',
+    priority: 'Medium',
     expected_visitors: '',
-    website_url: '',
+    booth_count: '',
+    budget: '',
+    manager_name: '',
     organizer_name: '',
-    organizer_email: '',
-    organizer_phone: '',
-    additional_notes: ''
+    website_url: '',
+    tags: ''
   });
 
   useEffect(() => {
-    fetchExhibitions();
-    fetchCountries();
-    fetchExhibitionManagers();
+    loadExpos();
   }, []);
 
-  const fetchExhibitions = async () => {
+  const loadExpos = async () => {
     try {
-      const { data, error } = await supabase
-        .from('exhibitions_2026_01_10')
-        .select(`
-          *,
-          exhibition_managers_2026_01_10 (
-            id,
-            name,
-            email,
-            phone,
-            department
-          ),
-          countries_2026_01_10 (
-            id,
-            name,
-            code
-          )
-        `)
-        .order('created_at', { ascending: false });
+      setLoading(true);
+      
+      // Mock data since we don't have an expos table yet
+      const mockExpos: Expo[] = [
+        {
+          id: '1',
+          expo_number: 'EXPO-2026-001',
+          name: 'Green Energy Expo 2026',
+          description: 'Leading sustainable energy exhibition showcasing the latest innovations in renewable energy, green technology, and environmental solutions.',
+          theme: 'Sustainable Future',
+          start_date: '2026-03-15',
+          end_date: '2026-03-18',
+          city: 'Dubai',
+          country: 'UAE',
+          venue_name: 'Dubai World Trade Centre',
+          status: 'Active',
+          priority: 'High',
+          expected_visitors: 15000,
+          booth_count: 150,
+          budget: 2500000,
+          manager_name: 'Sarah Johnson',
+          organizer_name: 'Green Energy Alliance',
+          website_url: 'https://greenenergy-expo.com',
+          tags: ['renewable', 'sustainability', 'technology'],
+          totalExhibitors: 142,
+          paidExhibitors: 138,
+          totalSponsors: 12,
+          totalRevenue: 2840000,
+          occupancyRate: 94.7,
+          created_at: '2026-01-05T10:00:00Z',
+          updated_at: '2026-01-10T14:30:00Z'
+        },
+        {
+          id: '2',
+          expo_number: 'EXPO-2026-002',
+          name: 'Solar Technology Summit',
+          description: 'International summit focusing on solar panel technology, energy storage solutions, and photovoltaic innovations.',
+          theme: 'Solar Innovation',
+          start_date: '2026-05-20',
+          end_date: '2026-05-23',
+          city: 'Berlin',
+          country: 'Germany',
+          venue_name: 'Messe Berlin',
+          status: 'Registration Open',
+          priority: 'High',
+          expected_visitors: 8500,
+          booth_count: 80,
+          budget: 1200000,
+          manager_name: 'Mike Chen',
+          organizer_name: 'Solar Tech International',
+          website_url: 'https://solar-summit.com',
+          tags: ['solar', 'photovoltaic', 'energy-storage'],
+          totalExhibitors: 65,
+          paidExhibitors: 58,
+          totalSponsors: 8,
+          totalRevenue: 1450000,
+          occupancyRate: 81.3,
+          created_at: '2026-01-08T09:15:00Z',
+          updated_at: '2026-01-09T16:45:00Z'
+        },
+        {
+          id: '3',
+          expo_number: 'EXPO-2026-003',
+          name: 'Wind Power Conference',
+          description: 'Comprehensive conference and exhibition dedicated to wind energy technology, offshore wind farms, and turbine innovations.',
+          theme: 'Wind Energy Future',
+          start_date: '2026-07-10',
+          end_date: '2026-07-12',
+          city: 'Copenhagen',
+          country: 'Denmark',
+          venue_name: 'Bella Center',
+          status: 'Planning',
+          priority: 'Medium',
+          expected_visitors: 6000,
+          booth_count: 60,
+          budget: 800000,
+          manager_name: 'Emma Davis',
+          organizer_name: 'Wind Energy Association',
+          website_url: 'https://windpower-conf.com',
+          tags: ['wind', 'offshore', 'turbines'],
+          totalExhibitors: 45,
+          paidExhibitors: 35,
+          totalSponsors: 6,
+          totalRevenue: 920000,
+          occupancyRate: 75.0,
+          created_at: '2026-01-10T11:30:00Z',
+          updated_at: '2026-01-10T15:20:00Z'
+        },
+        {
+          id: '4',
+          expo_number: 'EXPO-2026-004',
+          name: 'Clean Tech Innovation Fair',
+          description: 'Showcase of cutting-edge clean technology solutions, environmental innovations, and sustainable business practices.',
+          theme: 'Clean Innovation',
+          start_date: '2026-09-05',
+          end_date: '2026-09-08',
+          city: 'San Francisco',
+          country: 'USA',
+          venue_name: 'Moscone Center',
+          status: 'Marketing',
+          priority: 'Critical',
+          expected_visitors: 12000,
+          booth_count: 120,
+          budget: 1800000,
+          manager_name: 'Lisa Wang',
+          organizer_name: 'Clean Tech Alliance',
+          website_url: 'https://cleantech-fair.com',
+          tags: ['cleantech', 'innovation', 'sustainability'],
+          totalExhibitors: 95,
+          paidExhibitors: 85,
+          totalSponsors: 10,
+          totalRevenue: 2100000,
+          occupancyRate: 79.2,
+          created_at: '2026-01-03T14:20:00Z',
+          updated_at: '2026-01-08T10:15:00Z'
+        },
+        {
+          id: '5',
+          expo_number: 'EXPO-2026-005',
+          name: 'Energy Storage Expo',
+          description: 'Specialized exhibition focusing on battery technology, energy storage systems, and grid integration solutions.',
+          theme: 'Energy Storage',
+          start_date: '2026-11-15',
+          end_date: '2026-11-17',
+          city: 'Tokyo',
+          country: 'Japan',
+          venue_name: 'Tokyo Big Sight',
+          status: 'Completed',
+          priority: 'Medium',
+          expected_visitors: 7500,
+          booth_count: 90,
+          budget: 1000000,
+          manager_name: 'Alex Thompson',
+          organizer_name: 'Energy Storage Japan',
+          website_url: 'https://energy-storage-expo.jp',
+          tags: ['battery', 'storage', 'grid'],
+          totalExhibitors: 78,
+          paidExhibitors: 78,
+          totalSponsors: 7,
+          totalRevenue: 1350000,
+          occupancyRate: 86.7,
+          created_at: '2026-01-07T13:45:00Z',
+          updated_at: '2026-01-10T09:30:00Z'
+        }
+      ];
 
-      if (error) throw error;
-      setExhibitions(data || []);
-    } catch (error) {
-      console.error('Error fetching exhibitions:', error);
+      setExpos(mockExpos);
+      
+    } catch (error: any) {
+      console.error("Error loading expos:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to fetch exhibitions',
-        variant: 'destructive',
+        title: "Error Loading Exhibitions",
+        description: "Failed to load exhibitions from database. Please try refreshing the page.",
+        variant: "destructive",
       });
+      setExpos([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchCountries = async () => {
+  const handleCreateExpo = async () => {
     try {
-      const { data, error } = await supabase
-        .from('countries_2026_01_10')
-        .select('*')
-        .order('name');
-
-      if (error) throw error;
-      setCountries(data || []);
-    } catch (error) {
-      console.error('Error fetching countries:', error);
-    }
-  };
-
-  const fetchExhibitionManagers = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('exhibition_managers_2026_01_10')
-        .select('*')
-        .eq('status', 'active')
-        .order('name');
-
-      if (error) throw error;
-      setExhibitionManagers(data || []);
-    } catch (error) {
-      console.error('Error fetching exhibition managers:', error);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-
-    try {
-      const submitData = {
-        ...formData,
-        venue_capacity: formData.venue_capacity ? parseInt(formData.venue_capacity) : null,
-        total_area_sqm: formData.total_area_sqm ? parseFloat(formData.total_area_sqm) : null,
-        expected_visitors: formData.expected_visitors ? parseInt(formData.expected_visitors) : null,
+      const newExpo: Expo = {
+        id: Date.now().toString(),
+        expo_number: `EXPO-2026-${String(expos.length + 1).padStart(3, '0')}`,
+        name: formData.name,
+        description: formData.description,
+        theme: formData.theme,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+        city: formData.city,
+        country: formData.country,
+        venue_name: formData.venue_name,
+        status: formData.status,
+        priority: formData.priority,
+        expected_visitors: formData.expected_visitors ? parseInt(formData.expected_visitors) : undefined,
+        booth_count: formData.booth_count ? parseInt(formData.booth_count) : undefined,
+        budget: formData.budget ? parseFloat(formData.budget) : undefined,
+        manager_name: formData.manager_name,
+        organizer_name: formData.organizer_name,
+        website_url: formData.website_url,
+        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : [],
+        totalExhibitors: 0,
+        paidExhibitors: 0,
+        totalSponsors: 0,
+        totalRevenue: 0,
+        occupancyRate: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase
-        .from('exhibitions_2026_01_10')
-        .insert([submitData]);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Success',
-        description: 'Exhibition created successfully',
-      });
-
-      setIsAddExhibitionOpen(false);
+      setExpos(prev => [newExpo, ...prev]);
+      setShowCreateDialog(false);
       resetForm();
-      fetchExhibitions();
-    } catch (error) {
-      console.error('Error creating exhibition:', error);
+      
       toast({
-        title: 'Error',
-        description: 'Failed to create exhibition',
-        variant: 'destructive',
+        title: "Exhibition Created",
+        description: `Exhibition "${formData.name}" has been created successfully`,
       });
-    } finally {
-      setSubmitting(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create exhibition",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleEdit = (exhibition: Exhibition) => {
-    setEditingExhibition(exhibition);
-    setFormData({
-      exhibition_name: exhibition.exhibition_name,
-      status: exhibition.status,
-      exhibition_manager_id: exhibition.exhibition_manager_id || '',
-      description: exhibition.description || '',
-      start_date: exhibition.start_date,
-      end_date: exhibition.end_date,
-      registration_start: exhibition.registration_start || '',
-      registration_end: exhibition.registration_end || '',
-      venue_name: exhibition.venue_name || '',
-      venue_capacity: exhibition.venue_capacity?.toString() || '',
-      venue_address: exhibition.venue_address || '',
-      venue_city: exhibition.venue_city || '',
-      venue_country_id: exhibition.venue_country_id || '',
-      total_area_sqm: exhibition.total_area_sqm?.toString() || '',
-      expected_visitors: exhibition.expected_visitors?.toString() || '',
-      website_url: exhibition.website_url || '',
-      organizer_name: exhibition.organizer_name || '',
-      organizer_email: exhibition.organizer_email || '',
-      organizer_phone: exhibition.organizer_phone || '',
-      additional_notes: exhibition.additional_notes || ''
-    });
-    setIsEditExhibitionOpen(true);
+  const handleUpdateExpo = async () => {
+    if (!editingExpo) return;
+
+    try {
+      const updatedExpo = {
+        ...editingExpo,
+        name: formData.name,
+        description: formData.description,
+        theme: formData.theme,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+        city: formData.city,
+        country: formData.country,
+        venue_name: formData.venue_name,
+        status: formData.status,
+        priority: formData.priority,
+        expected_visitors: formData.expected_visitors ? parseInt(formData.expected_visitors) : undefined,
+        booth_count: formData.booth_count ? parseInt(formData.booth_count) : undefined,
+        budget: formData.budget ? parseFloat(formData.budget) : undefined,
+        manager_name: formData.manager_name,
+        organizer_name: formData.organizer_name,
+        website_url: formData.website_url,
+        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : [],
+        updated_at: new Date().toISOString()
+      };
+
+      setExpos(prev => prev.map(expo => 
+        expo.id === editingExpo.id ? updatedExpo : expo
+      ));
+      
+      setShowEditDialog(false);
+      setEditingExpo(null);
+      resetForm();
+      
+      toast({
+        title: "Exhibition Updated",
+        description: `Exhibition "${formData.name}" has been updated successfully`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update exhibition",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingExhibition) return;
+  const handleDeleteExpo = (expo: Expo) => {
+    setExpoToDelete(expo);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDeleteExpo = async () => {
+    if (!expoToDelete) return;
     
-    setSubmitting(true);
-
     try {
-      const submitData = {
-        ...formData,
-        venue_capacity: formData.venue_capacity ? parseInt(formData.venue_capacity) : null,
-        total_area_sqm: formData.total_area_sqm ? parseFloat(formData.total_area_sqm) : null,
-        expected_visitors: formData.expected_visitors ? parseInt(formData.expected_visitors) : null,
-      };
-
-      const { error } = await supabase
-        .from('exhibitions_2026_01_10')
-        .update(submitData)
-        .eq('id', editingExhibition.id);
-
-      if (error) throw error;
-
+      setExpos(prev => prev.filter(expo => expo.id !== expoToDelete.id));
+      
       toast({
-        title: 'Success',
-        description: 'Exhibition updated successfully',
+        title: "Exhibition Deleted",
+        description: `Exhibition "${expoToDelete.name}" has been deleted successfully`,
       });
-
-      setIsEditExhibitionOpen(false);
-      setEditingExhibition(null);
-      resetForm();
-      fetchExhibitions();
-    } catch (error) {
-      console.error('Error updating exhibition:', error);
+    } catch (error: any) {
       toast({
-        title: 'Error',
-        description: 'Failed to update exhibition',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to delete exhibition",
+        variant: "destructive",
       });
     } finally {
-      setSubmitting(false);
+      setShowDeleteDialog(false);
+      setExpoToDelete(null);
     }
   };
 
-  const handleDelete = async (exhibitionId: string) => {
-    if (!confirm('Are you sure you want to delete this exhibition?')) return;
-
+  const handleStatusChange = async (expoId: string, newStatus: string) => {
     try {
-      const { error } = await supabase
-        .from('exhibitions_2026_01_10')
-        .delete()
-        .eq('id', exhibitionId);
-
-      if (error) throw error;
-
+      setExpos(prevExpos => 
+        prevExpos.map(expo => 
+          expo.id === expoId ? { ...expo, status: newStatus, updated_at: new Date().toISOString() } : expo
+        )
+      );
+      
       toast({
-        title: 'Success',
-        description: 'Exhibition deleted successfully',
+        title: "Status Updated",
+        description: `Exhibition status changed to ${newStatus}`,
       });
-
-      fetchExhibitions();
-    } catch (error) {
-      console.error('Error deleting exhibition:', error);
+    } catch (error: any) {
       toast({
-        title: 'Error',
-        description: 'Failed to delete exhibition',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to update status",
+        variant: "destructive",
       });
     }
+  };
+
+  const handleEditExpo = (expo: Expo) => {
+    setEditingExpo(expo);
+    setFormData({
+      name: expo.name,
+      description: expo.description || '',
+      theme: expo.theme || '',
+      start_date: expo.start_date,
+      end_date: expo.end_date,
+      city: expo.city || '',
+      country: expo.country || '',
+      venue_name: expo.venue_name || '',
+      status: expo.status,
+      priority: expo.priority,
+      expected_visitors: expo.expected_visitors?.toString() || '',
+      booth_count: expo.booth_count?.toString() || '',
+      budget: expo.budget?.toString() || '',
+      manager_name: expo.manager_name || '',
+      organizer_name: expo.organizer_name || '',
+      website_url: expo.website_url || '',
+      tags: expo.tags?.join(', ') || ''
+    });
+    setShowEditDialog(true);
   };
 
   const resetForm = () => {
     setFormData({
-      exhibition_name: '',
-      status: '',
-      exhibition_manager_id: '',
+      name: '',
       description: '',
+      theme: '',
       start_date: '',
       end_date: '',
-      registration_start: '',
-      registration_end: '',
+      city: '',
+      country: '',
       venue_name: '',
-      venue_capacity: '',
-      venue_address: '',
-      venue_city: '',
-      venue_country_id: '',
-      total_area_sqm: '',
+      status: 'Planning',
+      priority: 'Medium',
       expected_visitors: '',
-      website_url: '',
+      booth_count: '',
+      budget: '',
+      manager_name: '',
       organizer_name: '',
-      organizer_email: '',
-      organizer_phone: '',
-      additional_notes: ''
+      website_url: '',
+      tags: ''
     });
   };
 
-  const handleRefresh = () => {
-    fetchExhibitions();
+  const exportExpos = () => {
+    try {
+      const csvContent = [
+        ['Expo Number', 'Name', 'Status', 'Start Date', 'End Date', 'City', 'Country', 'Expected Visitors', 'Budget', 'Priority', 'Manager'].join(','),
+        ...filteredExpos.map(expo => [
+          expo.expo_number || '',
+          `"${expo.name || ''}"`,
+          expo.status || '',
+          expo.start_date || '',
+          expo.end_date || '',
+          expo.city || '',
+          expo.country || '',
+          expo.expected_visitors || '',
+          expo.budget || '',
+          expo.priority || '',
+          `"${expo.manager_name || ''}"`
+        ].join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `exhibitions_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: "Export Successful",
+        description: "Exhibitions data has been exported to CSV",
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to export exhibitions data",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleExport = () => {
-    console.log('Exporting exhibitions data...');
-  };
+  // Filter expos based on search and filters
+  const filteredExpos = expos.filter(expo => {
+    const matchesSearch = !searchTerm || 
+      expo.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      expo.expo_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      expo.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      expo.theme?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      expo.organizer_name?.toLowerCase().includes(searchTerm.toLowerCase());
 
-  // Calculate metrics
-  const totalExhibitions = exhibitions.length;
-  const activeExhibitions = exhibitions.filter(e => e.status === 'Active').length;
-  const planningExhibitions = exhibitions.filter(e => e.status === 'Planning').length;
-  const registrationExhibitions = exhibitions.filter(e => e.status === 'Registration Open').length;
-  const completedExhibitions = exhibitions.filter(e => e.status === 'Completed').length;
-  const cancelledExhibitions = exhibitions.filter(e => e.status === 'Cancelled').length;
-  const totalRevenue = 0; // Will be calculated from deals later
-  const totalExpectedVisitors = exhibitions.reduce((sum, e) => sum + (e.expected_visitors || 0), 0);
+    const matchesStatus = statusFilter === "all-status" || expo.status === statusFilter;
+    const matchesPriority = priorityFilter === "all-priority" || expo.priority === priorityFilter;
+    
+    const matchesYear = yearFilter === "all-years" || 
+      (expo.start_date && new Date(expo.start_date).getFullYear().toString() === yearFilter);
 
-  const getStatusColor = (status: string) => {
-    const colors = {
-      'Planning': 'bg-blue-100 text-blue-800',
-      'Registration Open': 'bg-purple-100 text-purple-800',
-      'Active': 'bg-green-100 text-green-800',
-      'Completed': 'bg-gray-100 text-gray-800',
-      'Cancelled': 'bg-red-100 text-red-800',
-      'Postponed': 'bg-yellow-100 text-yellow-800',
-    };
-    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
-  };
+    const matchesTab = activeTab === 'all' || 
+                      (activeTab === 'active' && expo.status === 'Active') ||
+                      (activeTab === 'planning' && expo.status === 'Planning') ||
+                      (activeTab === 'completed' && expo.status === 'Completed') ||
+                      (activeTab === 'upcoming' && new Date(expo.start_date) > new Date());
 
-  const filteredExhibitions = exhibitions.filter(exhibition => {
-    const matchesSearch = exhibition.exhibition_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (exhibition.venue_city && exhibition.venue_city.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                         (exhibition.organizer_name && exhibition.organizer_name.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesStatus = statusFilter === 'all' || exhibition.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesPriority && matchesYear && matchesTab;
   });
 
-  const ExhibitionForm = ({ onSubmit, isEdit = false }: { onSubmit: (e: React.FormEvent) => void; isEdit?: boolean }) => (
-    <form onSubmit={onSubmit} className="space-y-6">
-      {/* Basic Information */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Basic Information</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="exhibition_name">Exhibition Name *</Label>
-            <Input 
-              id="exhibition_name" 
-              value={formData.exhibition_name}
-              onChange={(e) => setFormData({...formData, exhibition_name: e.target.value})}
-              placeholder="Enter exhibition name" 
-              required 
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="status">Status *</Label>
-            <Select value={formData.status} onValueChange={(value) => setFormData({...formData, status: value})}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                {exhibitionStatuses.map(status => (
-                  <SelectItem key={status} value={status}>{status}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="exhibition_manager_id">Exhibition Manager</Label>
-            <Select value={formData.exhibition_manager_id} onValueChange={(value) => setFormData({...formData, exhibition_manager_id: value})}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select manager" />
-              </SelectTrigger>
-              <SelectContent>
-                {exhibitionManagers.map(manager => (
-                  <SelectItem key={manager.id} value={manager.id}>{manager.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="col-span-2 space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea 
-              id="description" 
-              value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              placeholder="Enter exhibition description" 
-            />
-          </div>
-        </div>
-      </div>
+  // Calculate statistics
+  const stats: ExpoStats = {
+    total: expos.length,
+    active: expos.filter(e => e.status === 'Active').length,
+    planning: expos.filter(e => e.status === 'Planning').length,
+    completed: expos.filter(e => e.status === 'Completed').length,
+    registration: expos.filter(e => e.status === 'Registration Open').length,
+    cancelled: expos.filter(e => e.status === 'Cancelled').length,
+    totalRevenue: expos.reduce((sum, expo) => sum + (expo.totalRevenue || 0), 0),
+    totalVisitors: expos.reduce((sum, expo) => sum + (expo.expected_visitors || 0), 0)
+  };
 
-      {/* Dates and Timeline */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Dates and Timeline</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="start_date">Start Date *</Label>
-            <Input 
-              id="start_date" 
-              type="date"
-              value={formData.start_date}
-              onChange={(e) => setFormData({...formData, start_date: e.target.value})}
-              required 
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="end_date">End Date *</Label>
-            <Input 
-              id="end_date" 
-              type="date"
-              value={formData.end_date}
-              onChange={(e) => setFormData({...formData, end_date: e.target.value})}
-              required 
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="registration_start">Registration Start</Label>
-            <Input 
-              id="registration_start" 
-              type="date"
-              value={formData.registration_start}
-              onChange={(e) => setFormData({...formData, registration_start: e.target.value})}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="registration_end">Registration End</Label>
-            <Input 
-              id="registration_end" 
-              type="date"
-              value={formData.registration_end}
-              onChange={(e) => setFormData({...formData, registration_end: e.target.value})}
-            />
-          </div>
-        </div>
-      </div>
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'Active': return <Play className="w-4 h-4" />;
+      case 'Planning': return <Clock className="w-4 h-4" />;
+      case 'Registration Open': return <Users className="w-4 h-4" />;
+      case 'Completed': return <CheckCircle className="w-4 h-4" />;
+      case 'Cancelled': return <XCircle className="w-4 h-4" />;
+      case 'Postponed': return <Pause className="w-4 h-4" />;
+      case 'Marketing': return <Zap className="w-4 h-4" />;
+      default: return <Activity className="w-4 h-4" />;
+    }
+  };
 
-      {/* Venue Information */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Venue Information</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="venue_name">Venue Name</Label>
-            <Input 
-              id="venue_name" 
-              value={formData.venue_name}
-              onChange={(e) => setFormData({...formData, venue_name: e.target.value})}
-              placeholder="Enter venue name" 
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="venue_capacity">Venue Capacity</Label>
-            <Input 
-              id="venue_capacity" 
-              type="number"
-              value={formData.venue_capacity}
-              onChange={(e) => setFormData({...formData, venue_capacity: e.target.value})}
-              placeholder="Enter capacity" 
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="venue_city">City Name</Label>
-            <Input 
-              id="venue_city" 
-              value={formData.venue_city}
-              onChange={(e) => setFormData({...formData, venue_city: e.target.value})}
-              placeholder="Enter city" 
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="venue_country_id">Country</Label>
-            <Select value={formData.venue_country_id} onValueChange={(value) => setFormData({...formData, venue_country_id: value})}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select country" />
-              </SelectTrigger>
-              <SelectContent>
-                {countries.map(country => (
-                  <SelectItem key={country.id} value={country.id}>{country.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="col-span-2 space-y-2">
-            <Label htmlFor="venue_address">Venue Address</Label>
-            <Textarea 
-              id="venue_address" 
-              value={formData.venue_address}
-              onChange={(e) => setFormData({...formData, venue_address: e.target.value})}
-              placeholder="Enter full venue address" 
-            />
-          </div>
-        </div>
-      </div>
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Active': return 'bg-green-100 text-green-800 border-green-200';
+      case 'Planning': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'Registration Open': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'Completed': return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'Cancelled': return 'bg-red-100 text-red-800 border-red-200';
+      case 'Postponed': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'Marketing': return 'bg-orange-100 text-orange-800 border-orange-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
 
-      {/* Exhibition Details */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Exhibition Details</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="total_area_sqm">Total Area (SQM)</Label>
-            <Input 
-              id="total_area_sqm" 
-              type="number"
-              step="0.01"
-              value={formData.total_area_sqm}
-              onChange={(e) => setFormData({...formData, total_area_sqm: e.target.value})}
-              placeholder="Enter total area" 
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="expected_visitors">Expected Visitors</Label>
-            <Input 
-              id="expected_visitors" 
-              type="number"
-              value={formData.expected_visitors}
-              onChange={(e) => setFormData({...formData, expected_visitors: e.target.value})}
-              placeholder="Enter expected visitors" 
-            />
-          </div>
-          <div className="col-span-2 space-y-2">
-            <Label htmlFor="website_url">Website URL</Label>
-            <Input 
-              id="website_url" 
-              type="url"
-              value={formData.website_url}
-              onChange={(e) => setFormData({...formData, website_url: e.target.value})}
-              placeholder="Enter website URL" 
-            />
-          </div>
-        </div>
-      </div>
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'Critical': return 'bg-red-100 text-red-800 border-red-200';
+      case 'High': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'Medium': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'Low': return 'bg-gray-100 text-gray-800 border-gray-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
 
-      {/* Organizer Information */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Organizer Information</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="organizer_name">Organizer Name</Label>
-            <Input 
-              id="organizer_name" 
-              value={formData.organizer_name}
-              onChange={(e) => setFormData({...formData, organizer_name: e.target.value})}
-              placeholder="Enter organizer name" 
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="organizer_email">Organizer Email</Label>
-            <Input 
-              id="organizer_email" 
-              type="email"
-              value={formData.organizer_email}
-              onChange={(e) => setFormData({...formData, organizer_email: e.target.value})}
-              placeholder="Enter organizer email" 
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="organizer_phone">Organizer Phone</Label>
-            <Input 
-              id="organizer_phone" 
-              value={formData.organizer_phone}
-              onChange={(e) => setFormData({...formData, organizer_phone: e.target.value})}
-              placeholder="Enter organizer phone" 
-            />
-          </div>
-          <div className="col-span-2 space-y-2">
-            <Label htmlFor="additional_notes">Additional Notes</Label>
-            <Textarea 
-              id="additional_notes" 
-              value={formData.additional_notes}
-              onChange={(e) => setFormData({...formData, additional_notes: e.target.value})}
-              placeholder="Enter additional notes" 
-            />
-          </div>
-        </div>
-      </div>
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount || 0);
+  };
 
-      <div className="flex justify-end gap-3">
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={() => {
-            if (isEdit) {
-              setIsEditExhibitionOpen(false);
-              setEditingExhibition(null);
-            } else {
-              setIsAddExhibitionOpen(false);
-            }
-            resetForm();
-          }}
-        >
-          Cancel
-        </Button>
-        <Button type="submit" disabled={submitting}>
-          {submitting ? (
-            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-          ) : null}
-          {isEdit ? 'Update Exhibition' : 'Create Exhibition'}
-        </Button>
-      </div>
-    </form>
-  );
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'Not set';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center py-12">
-        <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
-      </div>
-    );
-  }
+  const isOverdue = (expo: Expo) => {
+    if (!expo.end_date) return false;
+    const today = new Date();
+    const endDate = new Date(expo.end_date);
+    return endDate < today && expo.status !== 'Completed' && expo.status !== 'Cancelled';
+  };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
             <Globe className="w-8 h-8 text-blue-600" />
             Exhibitions Management
           </h1>
-          <p className="text-gray-600 mt-1">Manage exhibitions, exhibitors, and event logistics</p>
+          <p className="text-gray-600 mt-2">
+            Manage exhibitions, exhibitors, and event logistics
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleRefresh}>
+
+        <div className="flex items-center gap-3">
+          <Button onClick={loadExpos} variant="outline" size="sm">
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
-          <Button variant="outline" onClick={handleExport}>
+          <Button variant="outline" onClick={exportExpos}>
             <Download className="w-4 h-4 mr-2" />
             Export
           </Button>
-          <Dialog open={isAddExhibitionOpen} onOpenChange={setIsAddExhibitionOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Exhibition
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Add New Exhibition</DialogTitle>
-                <DialogDescription>
-                  Create a new exhibition with comprehensive details.
-                </DialogDescription>
-              </DialogHeader>
-              <ExhibitionForm onSubmit={handleSubmit} />
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => setShowCreateDialog(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Exhibition
+          </Button>
         </div>
       </div>
 
-      {/* Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4">
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Exhibitions</p>
-                <p className="text-2xl font-bold text-gray-900">{totalExhibitions}</p>
+                <p className="text-2xl font-bold">{stats.total}</p>
               </div>
               <Globe className="w-8 h-8 text-blue-600" />
             </div>
@@ -755,9 +701,9 @@ export default function Expos() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Active</p>
-                <p className="text-2xl font-bold text-green-600">{activeExhibitions}</p>
+                <p className="text-2xl font-bold">{stats.active}</p>
               </div>
-              <Activity className="w-8 h-8 text-green-600" />
+              <Play className="w-8 h-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
@@ -767,7 +713,7 @@ export default function Expos() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Planning</p>
-                <p className="text-2xl font-bold text-blue-600">{planningExhibitions}</p>
+                <p className="text-2xl font-bold">{stats.planning}</p>
               </div>
               <Clock className="w-8 h-8 text-blue-600" />
             </div>
@@ -779,7 +725,7 @@ export default function Expos() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Registration Open</p>
-                <p className="text-2xl font-bold text-purple-600">{registrationExhibitions}</p>
+                <p className="text-2xl font-bold">{stats.registration}</p>
               </div>
               <Users className="w-8 h-8 text-purple-600" />
             </div>
@@ -791,9 +737,9 @@ export default function Expos() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-2xl font-bold text-gray-600">{completedExhibitions}</p>
+                <p className="text-2xl font-bold">{stats.completed}</p>
               </div>
-              <CheckCircle2 className="w-8 h-8 text-gray-600" />
+              <CheckCircle className="w-8 h-8 text-gray-600" />
             </div>
           </CardContent>
         </Card>
@@ -803,7 +749,7 @@ export default function Expos() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Cancelled</p>
-                <p className="text-2xl font-bold text-red-600">{cancelledExhibitions}</p>
+                <p className="text-2xl font-bold">{stats.cancelled}</p>
               </div>
               <XCircle className="w-8 h-8 text-red-600" />
             </div>
@@ -815,7 +761,7 @@ export default function Expos() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="text-2xl font-bold text-green-600">EGP {totalRevenue.toLocaleString()}</p>
+                <p className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</p>
               </div>
               <DollarSign className="w-8 h-8 text-green-600" />
             </div>
@@ -827,161 +773,807 @@ export default function Expos() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Expected Visitors</p>
-                <p className="text-2xl font-bold text-blue-600">{totalExpectedVisitors.toLocaleString()}</p>
+                <p className="text-2xl font-bold">{stats.totalVisitors.toLocaleString()}</p>
               </div>
-              <Target className="w-8 h-8 text-blue-600" />
+              <Users className="w-8 h-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Search and Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Search exhibitions by name, city, or organizer..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  {exhibitionStatuses.map(status => (
-                    <SelectItem key={status} value={status}>{status}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="all">All Exhibitions</TabsTrigger>
+          <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="planning">Planning</TabsTrigger>
+          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+          <TabsTrigger value="completed">Completed</TabsTrigger>
+        </TabsList>
 
-      {/* Exhibitions Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Exhibitions Directory</CardTitle>
-          <CardDescription>
-            {filteredExhibitions.length} exhibitions found
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Exhibition</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Dates</TableHead>
-                <TableHead>Venue</TableHead>
-                <TableHead>Manager</TableHead>
-                <TableHead>Expected Visitors</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredExhibitions.map((exhibition) => (
-                <TableRow key={exhibition.id} className="hover:bg-gray-50">
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <Globe className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{exhibition.exhibition_name}</p>
-                        <p className="text-sm text-gray-600">{exhibition.description}</p>
+        <TabsContent value={activeTab} className="space-y-6">
+          {/* Search and Filters */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col lg:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                    <Input
+                      placeholder="Search exhibitions..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-40">
+                      <Filter className="w-4 h-4 mr-2" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all-status">All Status</SelectItem>
+                      <SelectItem value="Planning">Planning</SelectItem>
+                      <SelectItem value="Marketing">Marketing</SelectItem>
+                      <SelectItem value="Registration Open">Registration Open</SelectItem>
+                      <SelectItem value="Active">Active</SelectItem>
+                      <SelectItem value="Completed">Completed</SelectItem>
+                      <SelectItem value="Cancelled">Cancelled</SelectItem>
+                      <SelectItem value="Postponed">Postponed</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                    <SelectTrigger className="w-40">
+                      <Target className="w-4 h-4 mr-2" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all-priority">All Priority</SelectItem>
+                      <SelectItem value="Critical">Critical</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="Low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={yearFilter} onValueChange={setYearFilter}>
+                    <SelectTrigger className="w-40">
+                      <Calendar className="w-4 h-4 mr-2" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all-years">All Years</SelectItem>
+                      <SelectItem value="2024">2024</SelectItem>
+                      <SelectItem value="2025">2025</SelectItem>
+                      <SelectItem value="2026">2026</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Exhibitions List */}
+          {loading ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+                <p>Loading exhibitions...</p>
+              </CardContent>
+            </Card>
+          ) : filteredExpos.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Globe className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  {expos.length === 0 ? "No Exhibitions Found" : "No Matching Exhibitions"}
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  {expos.length === 0 
+                    ? "Get started by creating your first exhibition"
+                    : "Try adjusting your search criteria or filters"
+                  }
+                </p>
+                {expos.length === 0 && (
+                  <Button onClick={() => setShowCreateDialog(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create First Exhibition
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {filteredExpos.map((expo) => (
+                <Card key={expo.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 space-y-4">
+                        {/* Header Row */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <Badge variant="outline" className="font-mono text-xs">
+                              {expo.expo_number}
+                            </Badge>
+                            <Badge className={`${getPriorityColor(expo.priority)} border`}>
+                              <Target className="w-3 h-3 mr-1" />
+                              {expo.priority}
+                            </Badge>
+                          </div>
+
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => navigate(`/expos/${expo.id}`)}>
+                                <Eye className="w-4 h-4 mr-2" />
+                                View Details
+                              </DropdownMenuItem>
+                              
+                              {/* Quick Status Changes */}
+                              {expo.status === 'Planning' && (
+                                <DropdownMenuItem onClick={() => handleStatusChange(expo.id, 'Marketing')}>
+                                  <Zap className="w-4 h-4 mr-2" />
+                                  Start Marketing
+                                </DropdownMenuItem>
+                              )}
+                              {expo.status === 'Marketing' && (
+                                <DropdownMenuItem onClick={() => handleStatusChange(expo.id, 'Registration Open')}>
+                                  <Users className="w-4 h-4 mr-2" />
+                                  Open Registration
+                                </DropdownMenuItem>
+                              )}
+                              {expo.status === 'Registration Open' && (
+                                <DropdownMenuItem onClick={() => handleStatusChange(expo.id, 'Active')}>
+                                  <Play className="w-4 h-4 mr-2" />
+                                  Start Exhibition
+                                </DropdownMenuItem>
+                              )}
+                              {expo.status === 'Active' && (
+                                <DropdownMenuItem onClick={() => handleStatusChange(expo.id, 'Completed')}>
+                                  <CheckCircle className="w-4 h-4 mr-2" />
+                                  Mark Completed
+                                </DropdownMenuItem>
+                              )}
+                              
+                              <DropdownMenuSeparator />
+                              
+                              {/* Standard Actions */}
+                              {expo.website_url && (
+                                <DropdownMenuItem onClick={() => window.open(expo.website_url, '_blank')}>
+                                  <ExternalLink className="w-4 h-4 mr-2" />
+                                  View Website
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem onClick={() => handleEditExpo(expo)}>
+                                <Edit className="w-4 h-4 mr-2" />
+                                Edit Exhibition
+                              </DropdownMenuItem>
+                              
+                              <DropdownMenuSeparator />
+                              
+                              {/* Status Menu */}
+                              <DropdownMenuLabel>Change Status</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => handleStatusChange(expo.id, 'Planning')}>
+                                <Clock className="w-4 h-4 mr-2" />
+                                Planning
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleStatusChange(expo.id, 'Marketing')}>
+                                <Zap className="w-4 h-4 mr-2" />
+                                Marketing
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleStatusChange(expo.id, 'Registration Open')}>
+                                <Users className="w-4 h-4 mr-2" />
+                                Registration Open
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleStatusChange(expo.id, 'Active')}>
+                                <Play className="w-4 h-4 mr-2" />
+                                Active
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleStatusChange(expo.id, 'Completed')}>
+                                <CheckCircle className="w-4 h-4 mr-2" />
+                                Completed
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleStatusChange(expo.id, 'Cancelled')}>
+                                <XCircle className="w-4 h-4 mr-2" />
+                                Cancelled
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleStatusChange(expo.id, 'Postponed')}>
+                                <Pause className="w-4 h-4 mr-2" />
+                                Postponed
+                              </DropdownMenuItem>
+                              
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                onClick={() => handleDeleteExpo(expo)}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete Exhibition
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+
+                        {/* Title and Theme */}
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                            {expo.name}
+                          </h3>
+                          {expo.theme && (
+                            <p className="text-gray-600 text-sm">
+                              {expo.theme}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(exhibition.status)} variant="secondary">
-                      {exhibition.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1 text-sm">
-                        <Calendar className="w-3 h-3" />
-                        {new Date(exhibition.start_date).toLocaleDateString()} - {new Date(exhibition.end_date).toLocaleDateString()}
+
+                    {/* Status and Dates */}
+                    <div className="mt-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Badge className={`${getStatusColor(expo.status)} border`}>
+                            {getStatusIcon(expo.status)}
+                            <span className="ml-1">{expo.status}</span>
+                          </Badge>
+                          {isOverdue(expo) && (
+                            <Badge className="bg-red-100 text-red-800 border-red-200">
+                              <AlertTriangle className="w-3 h-3 mr-1" />
+                              Overdue
+                            </Badge>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-6 text-sm text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            <div>
+                              <div className="font-medium">Start</div>
+                              <div>{formatDate(expo.start_date)}</div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            <div>
+                              <div className="font-medium">End</div>
+                              <div>{formatDate(expo.end_date)}</div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <p className="font-medium text-sm">{exhibition.venue_name || 'TBD'}</p>
-                      {exhibition.venue_city && exhibition.countries_2026_01_10 && (
+
+                      {/* Location */}
+                      {(expo.city || expo.venue_name) && (
                         <div className="flex items-center gap-1 text-sm text-gray-600">
-                          <MapPin className="w-3 h-3" />
-                          {exhibition.venue_city}, {exhibition.countries_2026_01_10.name}
+                          <MapPin className="w-4 h-4" />
+                          <div>
+                            {expo.venue_name && <div className="font-medium">{expo.venue_name}</div>}
+                            {expo.city && <div>{expo.city}{expo.country && `, ${expo.country}`}</div>}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Statistics */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div className="flex items-center gap-1">
+                          <Users className="w-4 h-4 text-blue-600" />
+                          <div>
+                            <div className="font-medium">Exhibitors</div>
+                            <div>{expo.totalExhibitors || 0}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          <Building2 className="w-4 h-4 text-green-600" />
+                          <div>
+                            <div className="font-medium">Booths</div>
+                            <div>{expo.booth_count || 0}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          <Eye className="w-4 h-4 text-purple-600" />
+                          <div>
+                            <div className="font-medium">Expected</div>
+                            <div>{expo.expected_visitors?.toLocaleString() || 'TBD'}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          <DollarSign className="w-4 h-4 text-green-600" />
+                          <div>
+                            <div className="font-medium">Revenue</div>
+                            <div>{formatCurrency(expo.totalRevenue || 0)}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Manager */}
+                      {expo.manager_name && (
+                        <div className="flex items-center gap-1 text-sm text-gray-600">
+                          <User className="w-4 h-4" />
+                          <span className="font-medium">Manager:</span>
+                          <span>{expo.manager_name}</span>
+                        </div>
+                      )}
+
+                      {/* Tags */}
+                      {expo.tags && expo.tags.length > 0 && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {expo.tags.slice(0, 3).map((tag: string, index: number) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                          {expo.tags.length > 3 && (
+                            <Badge variant="secondary" className="text-xs">
+                              +{expo.tags.length - 3} more
+                            </Badge>
+                          )}
                         </div>
                       )}
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      {exhibition.exhibition_managers_2026_01_10?.name || 'Unassigned'}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm font-medium">
-                      {exhibition.expected_visitors?.toLocaleString() || 'TBD'}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Eye className="w-4 h-4 mr-2" />
-                          View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEdit(exhibition)}>
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit Exhibition
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          className="text-red-600"
-                          onClick={() => handleDelete(exhibition.id)}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete Exhibition
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
+                  </CardContent>
+                </Card>
               ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </div>
+          )}
+
+          {/* Results Summary */}
+          {!loading && (
+            <div className="text-center text-sm text-gray-600">
+              Showing {filteredExpos.length} of {expos.length} exhibitions
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+
+      {/* Create Exhibition Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Create New Exhibition</DialogTitle>
+            <DialogDescription>
+              Add a new exhibition to your event management system.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Exhibition Name *</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Exhibition name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="theme">Theme</Label>
+              <Input
+                id="theme"
+                value={formData.theme}
+                onChange={(e) => setFormData(prev => ({ ...prev, theme: e.target.value }))}
+                placeholder="Exhibition theme"
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Exhibition description"
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="start_date">Start Date</Label>
+              <Input
+                id="start_date"
+                type="date"
+                value={formData.start_date}
+                onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="end_date">End Date</Label>
+              <Input
+                id="end_date"
+                type="date"
+                value={formData.end_date}
+                onChange={(e) => setFormData(prev => ({ ...prev, end_date: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="city">City</Label>
+              <Input
+                id="city"
+                value={formData.city}
+                onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                placeholder="City"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="country">Country</Label>
+              <Input
+                id="country"
+                value={formData.country}
+                onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
+                placeholder="Country"
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="venue_name">Venue</Label>
+              <Input
+                id="venue_name"
+                value={formData.venue_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, venue_name: e.target.value }))}
+                placeholder="Venue name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Planning">Planning</SelectItem>
+                  <SelectItem value="Marketing">Marketing</SelectItem>
+                  <SelectItem value="Registration Open">Registration Open</SelectItem>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Completed">Completed</SelectItem>
+                  <SelectItem value="Cancelled">Cancelled</SelectItem>
+                  <SelectItem value="Postponed">Postponed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="priority">Priority</Label>
+              <Select value={formData.priority} onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Critical">Critical</SelectItem>
+                  <SelectItem value="High">High</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="Low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="expected_visitors">Expected Visitors</Label>
+              <Input
+                id="expected_visitors"
+                type="number"
+                value={formData.expected_visitors}
+                onChange={(e) => setFormData(prev => ({ ...prev, expected_visitors: e.target.value }))}
+                placeholder="0"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="booth_count">Total Booths</Label>
+              <Input
+                id="booth_count"
+                type="number"
+                value={formData.booth_count}
+                onChange={(e) => setFormData(prev => ({ ...prev, booth_count: e.target.value }))}
+                placeholder="0"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="budget">Budget</Label>
+              <Input
+                id="budget"
+                type="number"
+                value={formData.budget}
+                onChange={(e) => setFormData(prev => ({ ...prev, budget: e.target.value }))}
+                placeholder="0.00"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="manager_name">Manager</Label>
+              <Input
+                id="manager_name"
+                value={formData.manager_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, manager_name: e.target.value }))}
+                placeholder="Manager name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="organizer_name">Organizer</Label>
+              <Input
+                id="organizer_name"
+                value={formData.organizer_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, organizer_name: e.target.value }))}
+                placeholder="Organizer name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="website_url">Website URL</Label>
+              <Input
+                id="website_url"
+                value={formData.website_url}
+                onChange={(e) => setFormData(prev => ({ ...prev, website_url: e.target.value }))}
+                placeholder="https://example.com"
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="tags">Tags (comma-separated)</Label>
+              <Input
+                id="tags"
+                value={formData.tags}
+                onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
+                placeholder="renewable, technology, sustainability"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateExpo} disabled={!formData.name}>
+              Create Exhibition
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Exhibition Dialog */}
-      <Dialog open={isEditExhibitionOpen} onOpenChange={setIsEditExhibitionOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Exhibition</DialogTitle>
             <DialogDescription>
-              Update exhibition information.
+              Update exhibition information and settings.
             </DialogDescription>
           </DialogHeader>
-          <ExhibitionForm onSubmit={handleUpdate} isEdit={true} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Exhibition Name *</Label>
+              <Input
+                id="edit-name"
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Exhibition name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-theme">Theme</Label>
+              <Input
+                id="edit-theme"
+                value={formData.theme}
+                onChange={(e) => setFormData(prev => ({ ...prev, theme: e.target.value }))}
+                placeholder="Exhibition theme"
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="edit-description">Description</Label>
+              <Textarea
+                id="edit-description"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Exhibition description"
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-start_date">Start Date</Label>
+              <Input
+                id="edit-start_date"
+                type="date"
+                value={formData.start_date}
+                onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-end_date">End Date</Label>
+              <Input
+                id="edit-end_date"
+                type="date"
+                value={formData.end_date}
+                onChange={(e) => setFormData(prev => ({ ...prev, end_date: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-city">City</Label>
+              <Input
+                id="edit-city"
+                value={formData.city}
+                onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                placeholder="City"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-country">Country</Label>
+              <Input
+                id="edit-country"
+                value={formData.country}
+                onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
+                placeholder="Country"
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="edit-venue_name">Venue</Label>
+              <Input
+                id="edit-venue_name"
+                value={formData.venue_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, venue_name: e.target.value }))}
+                placeholder="Venue name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-status">Status</Label>
+              <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Planning">Planning</SelectItem>
+                  <SelectItem value="Marketing">Marketing</SelectItem>
+                  <SelectItem value="Registration Open">Registration Open</SelectItem>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Completed">Completed</SelectItem>
+                  <SelectItem value="Cancelled">Cancelled</SelectItem>
+                  <SelectItem value="Postponed">Postponed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-priority">Priority</Label>
+              <Select value={formData.priority} onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Critical">Critical</SelectItem>
+                  <SelectItem value="High">High</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="Low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-expected_visitors">Expected Visitors</Label>
+              <Input
+                id="edit-expected_visitors"
+                type="number"
+                value={formData.expected_visitors}
+                onChange={(e) => setFormData(prev => ({ ...prev, expected_visitors: e.target.value }))}
+                placeholder="0"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-booth_count">Total Booths</Label>
+              <Input
+                id="edit-booth_count"
+                type="number"
+                value={formData.booth_count}
+                onChange={(e) => setFormData(prev => ({ ...prev, booth_count: e.target.value }))}
+                placeholder="0"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-budget">Budget</Label>
+              <Input
+                id="edit-budget"
+                type="number"
+                value={formData.budget}
+                onChange={(e) => setFormData(prev => ({ ...prev, budget: e.target.value }))}
+                placeholder="0.00"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-manager_name">Manager</Label>
+              <Input
+                id="edit-manager_name"
+                value={formData.manager_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, manager_name: e.target.value }))}
+                placeholder="Manager name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-organizer_name">Organizer</Label>
+              <Input
+                id="edit-organizer_name"
+                value={formData.organizer_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, organizer_name: e.target.value }))}
+                placeholder="Organizer name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-website_url">Website URL</Label>
+              <Input
+                id="edit-website_url"
+                value={formData.website_url}
+                onChange={(e) => setFormData(prev => ({ ...prev, website_url: e.target.value }))}
+                placeholder="https://example.com"
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="edit-tags">Tags (comma-separated)</Label>
+              <Input
+                id="edit-tags"
+                value={formData.tags}
+                onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
+                placeholder="renewable, technology, sustainability"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateExpo} disabled={!formData.name}>
+              Update Exhibition
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Exhibition</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the exhibition and all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {expoToDelete && (
+            <div className="my-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Globe className="w-8 h-8 text-blue-600" />
+                    <div>
+                      <h4 className="font-semibold">{expoToDelete.name}</h4>
+                      <div className="text-sm text-gray-600">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {new Date(expoToDelete.start_date).toLocaleDateString()} - {new Date(expoToDelete.end_date).toLocaleDateString()}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          {expoToDelete.city || 'Location not specified'}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Users className="w-3 h-3" />
+                          {expoToDelete.totalExhibitors || 0} exhibitors, {expoToDelete.totalSponsors || 0} sponsors
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setShowDeleteDialog(false);
+              setExpoToDelete(null);
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteExpo} className="bg-red-600 hover:bg-red-700">
+              Delete Exhibition
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
-}
+};
+
+export default Expos;

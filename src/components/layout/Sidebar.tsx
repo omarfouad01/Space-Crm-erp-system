@@ -19,6 +19,7 @@ import {
   LogOut,
   User,
   Users,
+  Calendar,
   ChevronRight
 } from 'lucide-react';
 
@@ -51,6 +52,7 @@ const menuSections = [
   {
     title: 'Management',
     items: [
+      { name: 'Meetings', path: '/meetings', icon: Calendar, description: 'Meeting management' },
       { name: 'HR & Team', path: '/hr', icon: Users, description: 'Human resources' },
       { name: 'Contracts', path: '/contracts', icon: FileText, description: 'Legal documents' },
       { name: 'Tasks', path: '/tasks', icon: SquareCheckBig, description: 'Operations tasks' },

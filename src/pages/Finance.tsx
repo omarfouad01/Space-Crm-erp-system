@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import {
   DollarSign,
   TrendingUp,
@@ -111,6 +112,7 @@ interface FinancialMetrics {
 
 const Finance = () => {
   const { toast } = useToast();
+  const { formatAmount } = useCurrency();
   const [loading, setLoading] = useState(true);
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [commissions, setCommissions] = useState<CommissionRecord[]>([]);
@@ -456,12 +458,7 @@ const Finance = () => {
   });
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount || 0);
+    return formatAmount(amount);
   };
 
   const formatPercentage = (value: number) => {

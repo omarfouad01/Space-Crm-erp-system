@@ -12,6 +12,7 @@ import {
   paymentService,
   connectionService 
 } from "@/services/supabaseService";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import {
   DollarSign,
   Users,
@@ -38,6 +39,7 @@ interface DashboardData {
 }
 
 export default function RobustDashboard() {
+  const { formatAmount } = useCurrency();
   const [data, setData] = useState<DashboardData>({
     clients: [],
     deals: [],
@@ -166,11 +168,7 @@ export default function RobustDashboard() {
   );
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-    }).format(amount);
+    return formatAmount(amount);
   };
 
   const getConnectionIcon = () => {

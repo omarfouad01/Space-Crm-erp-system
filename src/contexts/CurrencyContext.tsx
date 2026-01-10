@@ -8,6 +8,7 @@ export interface Currency {
 }
 
 export const SUPPORTED_CURRENCIES: Record<string, Currency> = {
+  EGP: { code: 'EGP', name: 'Egyptian Pound', symbol: 'ج.م', rate: 30.9 },
   USD: { code: 'USD', name: 'US Dollar', symbol: '$', rate: 1.0 },
   EUR: { code: 'EUR', name: 'Euro', symbol: '€', rate: 0.85 },
   GBP: { code: 'GBP', name: 'British Pound', symbol: '£', rate: 0.73 },
@@ -34,7 +35,7 @@ interface CurrencyProviderProps {
 }
 
 export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) => {
-  const [currency, setCurrencyState] = useState<Currency>(SUPPORTED_CURRENCIES.USD);
+  const [currency, setCurrencyState] = useState<Currency>(SUPPORTED_CURRENCIES.EGP);
 
   // Load currency from localStorage on mount
   useEffect(() => {
@@ -55,20 +56,38 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
 
   const formatAmount = (amount: number, currencyCode?: string): string => {
     const targetCurrency = currencyCode ? SUPPORTED_CURRENCIES[currencyCode] : currency;
-    if (!targetCurrency) return `$${amount.toFixed(2)}`;
+    if (!targetCurrency) return `ج.م${amount.toFixed(2)}`;
 
     // Convert amount if different currency
     let convertedAmount = amount;
-    if (currencyCode && currencyCode !== 'USD') {
-      convertedAmount = amount * targetCurrency.rate;
+    if (currencyCode && currencyCode !== currency.code) {
+      // Convert from current currency to target currency
+      const usdAmount = amount / currency.rate;
+      convertedAmount = usdAmount * targetCurrency.rate;
     }
 
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: targetCurrency.code,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(convertedAmount);
+    // Handle EGP formatting specially since it might not be supported by Intl
+    if (targetCurrency.code === 'EGP') {
+      return `${targetCurrency.symbol}${convertedAmount.toLocaleString('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      })}`;
+    }
+
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: targetCurrency.code,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      }).format(convertedAmount);
+    } catch (error) {
+      // Fallback for unsupported currencies
+      return `${targetCurrency.symbol}${convertedAmount.toLocaleString('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      })}`;
+    }
   };
 
   const convertAmount = (amount: number, fromCurrency: string, toCurrency: string): number => {

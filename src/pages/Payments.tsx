@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -137,6 +138,7 @@ interface PaymentForm {
 
 const Payments = () => {
   const { toast } = useToast();
+  const { formatAmount } = useCurrency();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all-status");
   const [methodFilter, setMethodFilter] = useState("all-methods");
@@ -791,13 +793,8 @@ const Payments = () => {
     remainingAmount: payments.reduce((sum, payment) => sum + payment.remaining_amount, 0)
   };
 
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount || 0);
+  const formatCurrency = (amount: number, currency?: string) => {
+    return formatAmount(amount);
   };
 
   const formatDate = (dateString: string) => {

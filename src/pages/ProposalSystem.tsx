@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import {
   FileText,
   Plus,
@@ -143,6 +144,7 @@ interface Client {
 
 const ProposalSystem = () => {
   const { toast } = useToast();
+  const { formatAmount } = useCurrency();
   const [loading, setLoading] = useState(true);
   const [proposals, setProposals] = useState<ProposalData[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
@@ -191,7 +193,7 @@ const ProposalSystem = () => {
     auto_follow_up: true,
     require_signature_verification: true,
     enable_notifications: true,
-    default_currency: 'USD',
+    default_currency: 'EGP',
     tax_rate: 14,
     company_name: 'Space Organizing',
     company_address: '123 Event Street, Expo City',
@@ -781,13 +783,9 @@ const ProposalSystem = () => {
     return matchesSearch && matchesStatus && matchesPriority && matchesCategory && matchesDate;
   });
 
+  // Use the currency context for formatting
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: settings.default_currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount || 0);
+    return formatAmount(amount || 0);
   };
 
   const formatDate = (dateString: string) => {

@@ -853,12 +853,12 @@ export const settingsService = {
   
   getCurrency: async () => {
     try {
-      const currency = localStorage.getItem('systemCurrency') || 'USD';
+      const currency = localStorage.getItem('systemCurrency') || 'EGP';
       console.log('💰 Settings: Currency loaded from localStorage:', currency);
       return currency;
     } catch (error) {
       console.error('❌ Settings: Error loading currency:', error);
-      return 'USD';
+      return 'EGP';
     }
   }
 };

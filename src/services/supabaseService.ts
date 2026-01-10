@@ -863,4 +863,441 @@ export const settingsService = {
   }
 };
 
+// User Management Interfaces
+export interface User {
+  id: string;
+  email: string;
+  full_name: string;
+  phone?: string;
+  department?: string;
+  position?: string;
+  hire_date?: string;
+  salary?: number;
+  address?: string;
+  emergency_contact?: string;
+  notes?: string;
+  status: 'active' | 'inactive' | 'suspended';
+  is_demo_user?: boolean;
+  created_at: string;
+  updated_at?: string;
+  roles?: any[];
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  display_name: string;
+  description?: string;
+  color?: string;
+  is_system_role: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface Permission {
+  id: string;
+  name: string;
+  display_name: string;
+  description?: string;
+  module: string;
+  action: string;
+  created_at: string;
+}
+
+export interface UserCredential {
+  id: string;
+  user_id: string;
+  email: string;
+  password_hash: string;
+  is_active: boolean;
+  last_login?: string;
+  failed_attempts: number;
+  locked_until?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+// User Management Services
+export const userService = {
+  getAll: async (): Promise<User[]> => {
+    try {
+      console.log('👥 UserService: Getting all users...');
+      
+      const { data, error } = await supabase
+        .from('users_2026_01_10_17_00')
+        .select(`
+          *,
+          user_roles:user_roles_2026_01_10_17_00(
+            role:roles_2026_01_10_17_00(
+              id,
+              name,
+              display_name,
+              color
+            )
+          )
+        `)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('❌ UserService: Error getting users:', error);
+        throw error;
+      }
+      
+      // Transform the data to include roles in a more usable format
+      const users = data?.map(user => ({
+        ...user,
+        roles: user.user_roles?.map((ur: any) => ({
+          role_id: ur.role.id,
+          role_name: ur.role.name,
+          role_display_name: ur.role.display_name,
+          role_color: ur.role.color
+        })) || []
+      })) || [];
+      
+      console.log('✅ UserService: Retrieved users:', users.length);
+      return users;
+    } catch (error) {
+      console.error('🚨 UserService: Error in getAll:', error);
+      throw error;
+    }
+  },
+
+  getById: async (id: string): Promise<User | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('users_2026_01_10_17_00')
+        .select(`
+          *,
+          user_roles:user_roles_2026_01_10_17_00(
+            role:roles_2026_01_10_17_00(
+              id,
+              name,
+              display_name,
+              color
+            )
+          )
+        `)
+        .eq('id', id)
+        .single();
+      
+      if (error) throw error;
+      
+      if (data) {
+        return {
+          ...data,
+          roles: data.user_roles?.map((ur: any) => ({
+            role_id: ur.role.id,
+            role_name: ur.role.name,
+            role_display_name: ur.role.display_name,
+            role_color: ur.role.color
+          })) || []
+        };
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('🚨 UserService: Error getting user by ID:', error);
+      throw error;
+    }
+  },
+
+  create: async (userData: Partial<User>): Promise<User> => {
+    try {
+      console.log('👥 UserService: Creating user:', userData.email);
+      
+      const { data, error } = await supabase
+        .from('users_2026_01_10_17_00')
+        .insert({
+          ...userData,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('❌ UserService: Error creating user:', error);
+        throw error;
+      }
+      
+      console.log('✅ UserService: User created successfully:', data.id);
+      return data;
+    } catch (error) {
+      console.error('🚨 UserService: Error in create:', error);
+      throw error;
+    }
+  },
+
+  update: async (id: string, updates: Partial<User>): Promise<User> => {
+    try {
+      console.log('👥 UserService: Updating user:', id);
+      
+      const { data, error } = await supabase
+        .from('users_2026_01_10_17_00')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('❌ UserService: Error updating user:', error);
+        throw error;
+      }
+      
+      console.log('✅ UserService: User updated successfully');
+      return data;
+    } catch (error) {
+      console.error('🚨 UserService: Error in update:', error);
+      throw error;
+    }
+  },
+
+  delete: async (id: string): Promise<void> => {
+    try {
+      console.log('👥 UserService: Deleting user:', id);
+      
+      const { error } = await supabase
+        .from('users_2026_01_10_17_00')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error('❌ UserService: Error deleting user:', error);
+        throw error;
+      }
+      
+      console.log('✅ UserService: User deleted successfully');
+    } catch (error) {
+      console.error('🚨 UserService: Error in delete:', error);
+      throw error;
+    }
+  },
+
+  assignRole: async (userId: string, roleId: string, assignedBy?: string): Promise<void> => {
+    try {
+      console.log('👥 UserService: Assigning role to user:', { userId, roleId });
+      
+      const { error } = await supabase
+        .from('user_roles_2026_01_10_17_00')
+        .insert({
+          user_id: userId,
+          role_id: roleId,
+          assigned_by: assignedBy,
+          assigned_at: new Date().toISOString()
+        });
+      
+      if (error) {
+        console.error('❌ UserService: Error assigning role:', error);
+        throw error;
+      }
+      
+      console.log('✅ UserService: Role assigned successfully');
+    } catch (error) {
+      console.error('🚨 UserService: Error in assignRole:', error);
+      throw error;
+    }
+  },
+
+  removeRole: async (userId: string, roleId: string): Promise<void> => {
+    try {
+      console.log('👥 UserService: Removing role from user:', { userId, roleId });
+      
+      const { error } = await supabase
+        .from('user_roles_2026_01_10_17_00')
+        .delete()
+        .eq('user_id', userId)
+        .eq('role_id', roleId);
+      
+      if (error) {
+        console.error('❌ UserService: Error removing role:', error);
+        throw error;
+      }
+      
+      console.log('✅ UserService: Role removed successfully');
+    } catch (error) {
+      console.error('🚨 UserService: Error in removeRole:', error);
+      throw error;
+    }
+  },
+
+  createCredentials: async (userId: string, email: string, password: string): Promise<void> => {
+    try {
+      console.log('🔐 UserService: Creating credentials for user:', email);
+      
+      const { error } = await supabase
+        .from('user_credentials_2026_01_10_17_00')
+        .insert({
+          user_id: userId,
+          email: email,
+          password_hash: password, // In production, this should be properly hashed
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      
+      if (error) {
+        console.error('❌ UserService: Error creating credentials:', error);
+        throw error;
+      }
+      
+      console.log('✅ UserService: Credentials created successfully');
+    } catch (error) {
+      console.error('🚨 UserService: Error in createCredentials:', error);
+      throw error;
+    }
+  },
+
+  updatePassword: async (userId: string, newPassword: string): Promise<void> => {
+    try {
+      console.log('🔐 UserService: Updating password for user:', userId);
+      
+      const { error } = await supabase
+        .from('user_credentials_2026_01_10_17_00')
+        .update({
+          password_hash: newPassword, // In production, this should be properly hashed
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId);
+      
+      if (error) {
+        console.error('❌ UserService: Error updating password:', error);
+        throw error;
+      }
+      
+      console.log('✅ UserService: Password updated successfully');
+    } catch (error) {
+      console.error('🚨 UserService: Error in updatePassword:', error);
+      throw error;
+    }
+  }
+};
+
+export const roleService = {
+  getAll: async (): Promise<Role[]> => {
+    try {
+      console.log('🛡️ RoleService: Getting all roles...');
+      
+      const { data, error } = await supabase
+        .from('roles_2026_01_10_17_00')
+        .select('*')
+        .order('is_system_role', { ascending: false })
+        .order('display_name', { ascending: true });
+      
+      if (error) {
+        console.error('❌ RoleService: Error getting roles:', error);
+        throw error;
+      }
+      
+      console.log('✅ RoleService: Retrieved roles:', data?.length || 0);
+      return data || [];
+    } catch (error) {
+      console.error('🚨 RoleService: Error in getAll:', error);
+      throw error;
+    }
+  },
+
+  create: async (roleData: Partial<Role>): Promise<Role> => {
+    try {
+      console.log('🛡️ RoleService: Creating role:', roleData.name);
+      
+      const { data, error } = await supabase
+        .from('roles_2026_01_10_17_00')
+        .insert({
+          ...roleData,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('❌ RoleService: Error creating role:', error);
+        throw error;
+      }
+      
+      console.log('✅ RoleService: Role created successfully:', data.id);
+      return data;
+    } catch (error) {
+      console.error('🚨 RoleService: Error in create:', error);
+      throw error;
+    }
+  },
+
+  update: async (id: string, updates: Partial<Role>): Promise<Role> => {
+    try {
+      console.log('🛡️ RoleService: Updating role:', id);
+      
+      const { data, error } = await supabase
+        .from('roles_2026_01_10_17_00')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('❌ RoleService: Error updating role:', error);
+        throw error;
+      }
+      
+      console.log('✅ RoleService: Role updated successfully');
+      return data;
+    } catch (error) {
+      console.error('🚨 RoleService: Error in update:', error);
+      throw error;
+    }
+  },
+
+  delete: async (id: string): Promise<void> => {
+    try {
+      console.log('🛡️ RoleService: Deleting role:', id);
+      
+      const { error } = await supabase
+        .from('roles_2026_01_10_17_00')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error('❌ RoleService: Error deleting role:', error);
+        throw error;
+      }
+      
+      console.log('✅ RoleService: Role deleted successfully');
+    } catch (error) {
+      console.error('🚨 RoleService: Error in delete:', error);
+      throw error;
+    }
+  }
+};
+
+export const permissionService = {
+  getAll: async (): Promise<Permission[]> => {
+    try {
+      console.log('🔐 PermissionService: Getting all permissions...');
+      
+      const { data, error } = await supabase
+        .from('permissions_2026_01_10_17_00')
+        .select('*')
+        .order('module', { ascending: true })
+        .order('action', { ascending: true });
+      
+      if (error) {
+        console.error('❌ PermissionService: Error getting permissions:', error);
+        throw error;
+      }
+      
+      console.log('✅ PermissionService: Retrieved permissions:', data?.length || 0);
+      return data || [];
+    } catch (error) {
+      console.error('🚨 PermissionService: Error in getAll:', error);
+      throw error;
+    }
+  }
+};
+
 export default SupabaseService;

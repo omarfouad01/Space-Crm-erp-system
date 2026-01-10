@@ -55,6 +55,7 @@ const menuSections = [
     items: [
       { name: 'Meetings', path: '/meetings', icon: Calendar, description: 'Meeting management' },
       { name: 'HR & Team', path: '/hr', icon: Users, description: 'Human resources' },
+      { name: 'User Management', path: '/users', icon: Users, description: 'User accounts & roles' },
       { name: 'Contracts', path: '/contracts', icon: FileText, description: 'Legal documents' },
       { name: 'Tasks', path: '/tasks', icon: SquareCheckBig, description: 'Operations tasks' },
       { name: 'Chat', path: '/chat', icon: MessageSquare, description: 'Team communication' },

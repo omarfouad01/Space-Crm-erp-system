@@ -36,6 +36,10 @@ import UserTesting from '@/pages/UserTesting';
 import DesignSystem from '@/pages/DesignSystem';
 import ProposalSystem from '@/pages/ProposalSystem';
 import RobustDashboard from '@/pages/RobustDashboard';
+import UserManagement from '@/pages/UserManagement';
+import Roles from '@/pages/Roles';
+import PasswordSetup from '@/pages/PasswordSetup';
+import PasswordTest from '@/pages/PasswordTest';
 
 function App() {
   // Mock authentication state - in real app this would come from context/state management
@@ -87,6 +91,10 @@ function App() {
           <Route path="/proposals" element={<ProposalSystem />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/users" element={<UserManagement />} />
+          <Route path="/roles" element={<Roles />} />
+          <Route path="/password-setup" element={<PasswordSetup />} />
+          <Route path="/password-test" element={<PasswordTest />} />
           <Route path="/user-testing" element={<UserTesting />} />
           <Route path="/design" element={<DesignSystem />} />
           <Route path="/client-portal/*" element={<ClientPortal />} />

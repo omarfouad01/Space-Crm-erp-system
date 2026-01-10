@@ -66,7 +66,7 @@ const menuSections = [
   {
     title: 'Quality Assurance',
     items: [
-      { name: 'User Testing', path: '/testing', icon: TestTube, description: 'Workflow testing' },
+      { name: 'User Testing', path: '/user-testing', icon: TestTube, description: 'API & System diagnostics' },
       { name: 'Performance', path: '/performance', icon: Gauge, description: 'System optimization' },
       { name: 'Design System', path: '/design', icon: Palette, description: 'UI/UX color palette' },
     ]

@@ -1140,183 +1140,240 @@ const Expos = () => {
 
       {/* Create Exhibition Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Create New Exhibition</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="w-5 h-5" />
+              Create New Exhibition
+            </DialogTitle>
             <DialogDescription>
-              Add a new exhibition to your event management system.
+              Add a new exhibition to your event management system. Fill in the required information below.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Exhibition Name *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Exhibition name"
-              />
+          
+          <div className="space-y-6">
+            {/* Basic Information Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Basic Information</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Exhibition Name *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Enter exhibition name"
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="theme">Theme</Label>
+                  <Input
+                    id="theme"
+                    value={formData.theme}
+                    onChange={(e) => setFormData(prev => ({ ...prev, theme: e.target.value }))}
+                    placeholder="Exhibition theme"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Brief description of the exhibition"
+                  rows={3}
+                  className="w-full resize-none"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="theme">Theme</Label>
-              <Input
-                id="theme"
-                value={formData.theme}
-                onChange={(e) => setFormData(prev => ({ ...prev, theme: e.target.value }))}
-                placeholder="Exhibition theme"
-              />
+            
+            {/* Date & Location Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Date & Location</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="start_date">Start Date *</Label>
+                  <Input
+                    id="start_date"
+                    type="date"
+                    value={formData.start_date}
+                    onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="end_date">End Date *</Label>
+                  <Input
+                    id="end_date"
+                    type="date"
+                    value={formData.end_date}
+                    onChange={(e) => setFormData(prev => ({ ...prev, end_date: e.target.value }))}
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="city">City</Label>
+                  <Input
+                    id="city"
+                    value={formData.city}
+                    onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                    placeholder="City name"
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="country">Country</Label>
+                  <Input
+                    id="country"
+                    value={formData.country}
+                    onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
+                    placeholder="Country name"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="venue_name">Venue</Label>
+                <Input
+                  id="venue_name"
+                  value={formData.venue_name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, venue_name: e.target.value }))}
+                  placeholder="Venue name and address"
+                  className="w-full"
+                />
+              </div>
             </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Exhibition description"
-                rows={3}
-              />
+            
+            {/* Management & Settings Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Management & Settings</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Planning">Planning</SelectItem>
+                      <SelectItem value="Marketing">Marketing</SelectItem>
+                      <SelectItem value="Registration Open">Registration Open</SelectItem>
+                      <SelectItem value="Active">Active</SelectItem>
+                      <SelectItem value="Completed">Completed</SelectItem>
+                      <SelectItem value="Cancelled">Cancelled</SelectItem>
+                      <SelectItem value="Postponed">Postponed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="priority">Priority</Label>
+                  <Select value={formData.priority} onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Critical">Critical</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="Low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="manager_name">Manager</Label>
+                  <Input
+                    id="manager_name"
+                    value={formData.manager_name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, manager_name: e.target.value }))}
+                    placeholder="Exhibition manager name"
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="organizer_name">Organizer</Label>
+                  <Input
+                    id="organizer_name"
+                    value={formData.organizer_name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, organizer_name: e.target.value }))}
+                    placeholder="Organizing company/entity"
+                    className="w-full"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="start_date">Start Date</Label>
-              <Input
-                id="start_date"
-                type="date"
-                value={formData.start_date}
-                onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
-              />
+            
+            {/* Capacity & Budget Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Capacity & Budget</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="expected_visitors">Expected Visitors</Label>
+                  <Input
+                    id="expected_visitors"
+                    type="number"
+                    value={formData.expected_visitors}
+                    onChange={(e) => setFormData(prev => ({ ...prev, expected_visitors: e.target.value }))}
+                    placeholder="0"
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="booth_count">Total Booths</Label>
+                  <Input
+                    id="booth_count"
+                    type="number"
+                    value={formData.booth_count}
+                    onChange={(e) => setFormData(prev => ({ ...prev, booth_count: e.target.value }))}
+                    placeholder="0"
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="budget">Budget (USD)</Label>
+                  <Input
+                    id="budget"
+                    type="number"
+                    value={formData.budget}
+                    onChange={(e) => setFormData(prev => ({ ...prev, budget: e.target.value }))}
+                    placeholder="0.00"
+                    className="w-full"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="end_date">End Date</Label>
-              <Input
-                id="end_date"
-                type="date"
-                value={formData.end_date}
-                onChange={(e) => setFormData(prev => ({ ...prev, end_date: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
-              <Input
-                id="city"
-                value={formData.city}
-                onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                placeholder="City"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
-              <Input
-                id="country"
-                value={formData.country}
-                onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
-                placeholder="Country"
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="venue_name">Venue</Label>
-              <Input
-                id="venue_name"
-                value={formData.venue_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, venue_name: e.target.value }))}
-                placeholder="Venue name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Planning">Planning</SelectItem>
-                  <SelectItem value="Marketing">Marketing</SelectItem>
-                  <SelectItem value="Registration Open">Registration Open</SelectItem>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                  <SelectItem value="Cancelled">Cancelled</SelectItem>
-                  <SelectItem value="Postponed">Postponed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="priority">Priority</Label>
-              <Select value={formData.priority} onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Critical">Critical</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="Low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="expected_visitors">Expected Visitors</Label>
-              <Input
-                id="expected_visitors"
-                type="number"
-                value={formData.expected_visitors}
-                onChange={(e) => setFormData(prev => ({ ...prev, expected_visitors: e.target.value }))}
-                placeholder="0"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="booth_count">Total Booths</Label>
-              <Input
-                id="booth_count"
-                type="number"
-                value={formData.booth_count}
-                onChange={(e) => setFormData(prev => ({ ...prev, booth_count: e.target.value }))}
-                placeholder="0"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="budget">Budget</Label>
-              <Input
-                id="budget"
-                type="number"
-                value={formData.budget}
-                onChange={(e) => setFormData(prev => ({ ...prev, budget: e.target.value }))}
-                placeholder="0.00"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="manager_name">Manager</Label>
-              <Input
-                id="manager_name"
-                value={formData.manager_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, manager_name: e.target.value }))}
-                placeholder="Manager name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="organizer_name">Organizer</Label>
-              <Input
-                id="organizer_name"
-                value={formData.organizer_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, organizer_name: e.target.value }))}
-                placeholder="Organizer name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="website_url">Website URL</Label>
-              <Input
-                id="website_url"
-                value={formData.website_url}
-                onChange={(e) => setFormData(prev => ({ ...prev, website_url: e.target.value }))}
-                placeholder="https://example.com"
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="tags">Tags (comma-separated)</Label>
-              <Input
-                id="tags"
-                value={formData.tags}
-                onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
-                placeholder="renewable, technology, sustainability"
-              />
+            
+            {/* Additional Information Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Additional Information</h3>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="website_url">Website URL</Label>
+                  <Input
+                    id="website_url"
+                    type="url"
+                    value={formData.website_url}
+                    onChange={(e) => setFormData(prev => ({ ...prev, website_url: e.target.value }))}
+                    placeholder="https://example.com"
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="tags">Tags (comma-separated)</Label>
+                  <Input
+                    id="tags"
+                    value={formData.tags}
+                    onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
+                    placeholder="renewable, technology, sustainability, innovation"
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500">Add relevant tags to help categorize and search for this exhibition</p>
+                </div>
+              </div>
             </div>
           </div>
           <DialogFooter>
@@ -1332,183 +1389,136 @@ const Expos = () => {
 
       {/* Edit Exhibition Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Exhibition</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="w-5 h-5" />
+              Edit Exhibition
+            </DialogTitle>
             <DialogDescription>
-              Update exhibition information and settings.
+              Update exhibition information and settings. Modify any field as needed.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-name">Exhibition Name *</Label>
-              <Input
-                id="edit-name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Exhibition name"
-              />
+          
+          <div className="space-y-6">
+            {/* Basic Information Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Basic Information</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Exhibition Name *</Label>
+                  <Input
+                    id="edit-name"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Enter exhibition name"
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-theme">Theme</Label>
+                  <Input
+                    id="edit-theme"
+                    value={formData.theme}
+                    onChange={(e) => setFormData(prev => ({ ...prev, theme: e.target.value }))}
+                    placeholder="Exhibition theme"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-description">Description</Label>
+                <Textarea
+                  id="edit-description"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Brief description of the exhibition"
+                  rows={3}
+                  className="w-full resize-none"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-theme">Theme</Label>
-              <Input
-                id="edit-theme"
-                value={formData.theme}
-                onChange={(e) => setFormData(prev => ({ ...prev, theme: e.target.value }))}
-                placeholder="Exhibition theme"
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="edit-description">Description</Label>
-              <Textarea
-                id="edit-description"
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Exhibition description"
-                rows={3}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-start_date">Start Date</Label>
-              <Input
-                id="edit-start_date"
-                type="date"
-                value={formData.start_date}
-                onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-end_date">End Date</Label>
-              <Input
-                id="edit-end_date"
-                type="date"
-                value={formData.end_date}
-                onChange={(e) => setFormData(prev => ({ ...prev, end_date: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-city">City</Label>
-              <Input
-                id="edit-city"
-                value={formData.city}
-                onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                placeholder="City"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-country">Country</Label>
-              <Input
-                id="edit-country"
-                value={formData.country}
-                onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
-                placeholder="Country"
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="edit-venue_name">Venue</Label>
-              <Input
-                id="edit-venue_name"
-                value={formData.venue_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, venue_name: e.target.value }))}
-                placeholder="Venue name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-status">Status</Label>
-              <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Planning">Planning</SelectItem>
-                  <SelectItem value="Marketing">Marketing</SelectItem>
-                  <SelectItem value="Registration Open">Registration Open</SelectItem>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                  <SelectItem value="Cancelled">Cancelled</SelectItem>
-                  <SelectItem value="Postponed">Postponed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-priority">Priority</Label>
-              <Select value={formData.priority} onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Critical">Critical</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="Low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-expected_visitors">Expected Visitors</Label>
-              <Input
-                id="edit-expected_visitors"
-                type="number"
-                value={formData.expected_visitors}
-                onChange={(e) => setFormData(prev => ({ ...prev, expected_visitors: e.target.value }))}
-                placeholder="0"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-booth_count">Total Booths</Label>
-              <Input
-                id="edit-booth_count"
-                type="number"
-                value={formData.booth_count}
-                onChange={(e) => setFormData(prev => ({ ...prev, booth_count: e.target.value }))}
-                placeholder="0"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-budget">Budget</Label>
-              <Input
-                id="edit-budget"
-                type="number"
-                value={formData.budget}
-                onChange={(e) => setFormData(prev => ({ ...prev, budget: e.target.value }))}
-                placeholder="0.00"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-manager_name">Manager</Label>
-              <Input
-                id="edit-manager_name"
-                value={formData.manager_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, manager_name: e.target.value }))}
-                placeholder="Manager name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-organizer_name">Organizer</Label>
-              <Input
-                id="edit-organizer_name"
-                value={formData.organizer_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, organizer_name: e.target.value }))}
-                placeholder="Organizer name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-website_url">Website URL</Label>
-              <Input
-                id="edit-website_url"
-                value={formData.website_url}
-                onChange={(e) => setFormData(prev => ({ ...prev, website_url: e.target.value }))}
-                placeholder="https://example.com"
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="edit-tags">Tags (comma-separated)</Label>
-              <Input
-                id="edit-tags"
-                value={formData.tags}
-                onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
-                placeholder="renewable, technology, sustainability"
-              />
+            
+            {/* Simplified Edit Form - Key Fields Only */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Key Details</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-start_date">Start Date</Label>
+                  <Input
+                    id="edit-start_date"
+                    type="date"
+                    value={formData.start_date}
+                    onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-end_date">End Date</Label>
+                  <Input
+                    id="edit-end_date"
+                    type="date"
+                    value={formData.end_date}
+                    onChange={(e) => setFormData(prev => ({ ...prev, end_date: e.target.value }))}
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-status">Status</Label>
+                  <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Planning">Planning</SelectItem>
+                      <SelectItem value="Marketing">Marketing</SelectItem>
+                      <SelectItem value="Registration Open">Registration Open</SelectItem>
+                      <SelectItem value="Active">Active</SelectItem>
+                      <SelectItem value="Completed">Completed</SelectItem>
+                      <SelectItem value="Cancelled">Cancelled</SelectItem>
+                      <SelectItem value="Postponed">Postponed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-priority">Priority</Label>
+                  <Select value={formData.priority} onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Critical">Critical</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="Low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-city">City</Label>
+                  <Input
+                    id="edit-city"
+                    value={formData.city}
+                    onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                    placeholder="City name"
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-venue_name">Venue</Label>
+                  <Input
+                    id="edit-venue_name"
+                    value={formData.venue_name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, venue_name: e.target.value }))}
+                    placeholder="Venue name"
+                    className="w-full"
+                  />
+                </div>
+              </div>
             </div>
           </div>
           <DialogFooter>

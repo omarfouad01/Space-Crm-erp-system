@@ -77,8 +77,29 @@ import {
   Activity,
   BarChart3,
   PieChart,
-  Loader2
+  Loader2,
+  Paperclip,
+  File,
+  Image,
+  FileImage,
+  FilePdf,
+  FileSpreadsheet,
+  FileVideo,
+  FileAudio,
+  FolderOpen,
+  CloudUpload,
+  HardDrive
 } from "lucide-react";
+
+interface FileAttachment {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  url: string;
+  uploaded_at: string;
+  uploaded_by: string;
+}
 
 interface Document {
   id: string;
@@ -97,6 +118,7 @@ interface Document {
   version: number;
   tags?: string[];
   file_url?: string;
+  attachments?: FileAttachment[];
   created_at: string;
   updated_at: string;
 }
@@ -126,6 +148,10 @@ const Documents = () => {
   const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [activeTab, setActiveTab] = useState('all');
+  const [fileUploadOpen, setFileUploadOpen] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [dragActive, setDragActive] = useState(false);
 
   // Form states for create/edit
   const [formData, setFormData] = useState({
@@ -170,6 +196,35 @@ const Documents = () => {
           version: 2,
           tags: ['renewable', 'partnership', 'high-value'],
           file_url: '#',
+          attachments: [
+            {
+              id: '1-1',
+              name: 'Solar_Partnership_Agreement_v2.pdf',
+              size: 2456789,
+              type: 'application/pdf',
+              url: '#',
+              uploaded_at: '2026-01-05T10:00:00Z',
+              uploaded_by: 'Sarah Johnson'
+            },
+            {
+              id: '1-2',
+              name: 'Technical_Specifications.docx',
+              size: 1234567,
+              type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+              url: '#',
+              uploaded_at: '2026-01-08T14:30:00Z',
+              uploaded_by: 'Mike Chen'
+            },
+            {
+              id: '1-3',
+              name: 'Site_Photos.zip',
+              size: 15678901,
+              type: 'application/zip',
+              url: '#',
+              uploaded_at: '2026-01-10T09:15:00Z',
+              uploaded_by: 'Emma Davis'
+            }
+          ],
           created_at: '2026-01-05T10:00:00Z',
           updated_at: '2026-01-10T14:30:00Z'
         },
@@ -190,6 +245,26 @@ const Documents = () => {
           version: 1,
           tags: ['wind', 'maintenance', 'operations'],
           file_url: '#',
+          attachments: [
+            {
+              id: '2-1',
+              name: 'Wind_Service_Agreement.pdf',
+              size: 1876543,
+              type: 'application/pdf',
+              url: '#',
+              uploaded_at: '2026-01-08T09:15:00Z',
+              uploaded_by: 'Mike Chen'
+            },
+            {
+              id: '2-2',
+              name: 'Maintenance_Schedule.xlsx',
+              size: 567890,
+              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              url: '#',
+              uploaded_at: '2026-01-09T11:30:00Z',
+              uploaded_by: 'Lisa Wang'
+            }
+          ],
           created_at: '2026-01-08T09:15:00Z',
           updated_at: '2026-01-09T16:45:00Z'
         },
@@ -476,6 +551,114 @@ const Documents = () => {
       title: "Export Complete",
       description: "Documents have been exported successfully",
     });
+  };
+
+  // File upload functions
+  const handleFileUpload = async (files: File[], documentId?: string) => {
+    if (!files.length) return;
+
+    setUploadingFiles(true);
+    try {
+      const uploadedFiles: FileAttachment[] = [];
+
+      for (const file of files) {
+        // In a real implementation, you would upload to Supabase Storage
+        // For now, we'll simulate the upload
+        const mockAttachment: FileAttachment = {
+          id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          url: URL.createObjectURL(file), // In real app, this would be the Supabase Storage URL
+          uploaded_at: new Date().toISOString(),
+          uploaded_by: 'Current User' // In real app, get from auth context
+        };
+        uploadedFiles.push(mockAttachment);
+      }
+
+      if (documentId) {
+        // Add files to existing document
+        setDocuments(prev => prev.map(doc => 
+          doc.id === documentId 
+            ? { ...doc, attachments: [...(doc.attachments || []), ...uploadedFiles] }
+            : doc
+        ));
+      } else {
+        // Store files for new document creation
+        setSelectedFiles(files);
+      }
+
+      toast({
+        title: "Files Uploaded",
+        description: `${files.length} file(s) uploaded successfully`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Upload Failed",
+        description: error.message || "Failed to upload files",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingFiles(false);
+      setFileUploadOpen(false);
+    }
+  };
+
+  const handleFileDelete = async (documentId: string, attachmentId: string) => {
+    try {
+      setDocuments(prev => prev.map(doc => 
+        doc.id === documentId 
+          ? { ...doc, attachments: doc.attachments?.filter(att => att.id !== attachmentId) }
+          : doc
+      ));
+
+      toast({
+        title: "File Deleted",
+        description: "File has been removed successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Delete Failed",
+        description: error.message || "Failed to delete file",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragActive(false);
+  };
+
+  const handleDrop = (e: React.DragEvent, documentId?: string) => {
+    e.preventDefault();
+    setDragActive(false);
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      handleFileUpload(files, documentId);
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const getFileIcon = (fileType: string) => {
+    if (fileType.includes('pdf')) return <FileText className="w-4 h-4 text-red-600" />;
+    if (fileType.includes('image')) return <FileImage className="w-4 h-4 text-green-600" />;
+    if (fileType.includes('spreadsheet') || fileType.includes('excel')) return <FileSpreadsheet className="w-4 h-4 text-green-600" />;
+    if (fileType.includes('video')) return <FileVideo className="w-4 h-4 text-purple-600" />;
+    if (fileType.includes('audio')) return <FileAudio className="w-4 h-4 text-blue-600" />;
+    return <File className="w-4 h-4 text-gray-600" />;
   };
 
   // Filter documents based on search and filters
@@ -902,6 +1085,54 @@ const Documents = () => {
                               ))}
                             </div>
                           )}
+
+                          {/* File Attachments */}
+                          {document.attachments && document.attachments.length > 0 && (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <Paperclip className="w-4 h-4 text-gray-500" />
+                                <span className="text-sm font-medium text-gray-700">
+                                  {document.attachments.length} attachment{document.attachments.length > 1 ? 's' : ''}
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {document.attachments.slice(0, 4).map((attachment) => (
+                                  <div key={attachment.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded border text-xs">
+                                    {getFileIcon(attachment.type)}
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-medium truncate">{attachment.name}</div>
+                                      <div className="text-gray-500">
+                                        {formatFileSize(attachment.size)} • {attachment.uploaded_by}
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0"
+                                        onClick={() => window.open(attachment.url, '_blank')}
+                                      >
+                                        <Eye className="w-3 h-3" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                                        onClick={() => handleFileDelete(document.id, attachment.id)}
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))}
+                                {document.attachments.length > 4 && (
+                                  <div className="text-xs text-gray-500 p-2">
+                                    +{document.attachments.length - 4} more files
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         {/* Actions */}
@@ -917,6 +1148,35 @@ const Documents = () => {
                               View
                             </Button>
                           )}
+
+                          {/* File Upload Button */}
+                          <div className="relative">
+                            <input
+                              type="file"
+                              multiple
+                              className="hidden"
+                              id={`file-upload-${document.id}`}
+                              onChange={(e) => {
+                                const files = Array.from(e.target.files || []);
+                                if (files.length > 0) {
+                                  handleFileUpload(files, document.id);
+                                }
+                              }}
+                            />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => document.getElementById(`file-upload-${document.id}`)?.click()}
+                              disabled={uploadingFiles}
+                            >
+                              {uploadingFiles ? (
+                                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                              ) : (
+                                <Upload className="w-4 h-4 mr-1" />
+                              )}
+                              {uploadingFiles ? 'Uploading...' : 'Upload'}
+                            </Button>
+                          </div>
 
                           {/* Quick Status Actions */}
                           {document.status === 'Draft' && (
@@ -1140,6 +1400,52 @@ const Documents = () => {
                 placeholder="tag1, tag2, tag3"
               />
             </div>
+            
+            {/* File Upload Section */}
+            <div className="space-y-2 md:col-span-2">
+              <Label>Attach Files</Label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors">
+                <input
+                  type="file"
+                  multiple
+                  className="hidden"
+                  id="create-file-upload"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
+                    setSelectedFiles(files);
+                  }}
+                />
+                <CloudUpload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-600 mb-2">
+                  Drag files here or click to browse
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => document.getElementById('create-file-upload')?.click()}
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Choose Files
+                </Button>
+                
+                {selectedFiles.length > 0 && (
+                  <div className="mt-3 space-y-1">
+                    <p className="text-sm font-medium text-gray-700">
+                      {selectedFiles.length} file{selectedFiles.length > 1 ? 's' : ''} selected:
+                    </p>
+                    <div className="text-xs text-gray-600 max-h-20 overflow-y-auto">
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between py-1">
+                          <span className="truncate">{file.name}</span>
+                          <span className="ml-2 text-gray-500">{formatFileSize(file.size)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
@@ -1316,6 +1622,170 @@ const Documents = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* File Upload Dialog */}
+      <Dialog open={fileUploadOpen} onOpenChange={setFileUploadOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Upload Files</DialogTitle>
+            <DialogDescription>
+              Upload documents, images, or other files to attach to this document.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Drag and Drop Area */}
+            <div
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                dragActive 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-300 hover:border-gray-400'
+              }`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e)}
+            >
+              <CloudUpload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Drag and drop files here
+              </h3>
+              <p className="text-gray-600 mb-4">
+                or click to browse and select files
+              </p>
+              <input
+                type="file"
+                multiple
+                className="hidden"
+                id="file-upload-dialog"
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []);
+                  if (files.length > 0) {
+                    handleFileUpload(files);
+                  }
+                }}
+              />
+              <Button
+                variant="outline"
+                onClick={() => document.getElementById('file-upload-dialog')?.click()}
+                disabled={uploadingFiles}
+              >
+                {uploadingFiles ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Choose Files
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* File Type Information */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-medium text-gray-900 mb-2">Supported File Types</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-1">
+                  <FileText className="w-4 h-4 text-red-600" />
+                  <span>PDF Documents</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <FileText className="w-4 h-4 text-blue-600" />
+                  <span>Word Documents</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <FileSpreadsheet className="w-4 h-4 text-green-600" />
+                  <span>Excel Files</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <FileImage className="w-4 h-4 text-purple-600" />
+                  <span>Images</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <File className="w-4 h-4 text-gray-600" />
+                  <span>Text Files</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Archive className="w-4 h-4 text-orange-600" />
+                  <span>Archives (ZIP)</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <FileVideo className="w-4 h-4 text-red-600" />
+                  <span>Video Files</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <FileAudio className="w-4 h-4 text-blue-600" />
+                  <span>Audio Files</span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Maximum file size: 50MB per file. Maximum 10 files at once.
+              </p>
+            </div>
+
+            {/* Selected Files Preview */}
+            {selectedFiles.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-medium text-gray-900">Selected Files ({selectedFiles.length})</h4>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {selectedFiles.map((file, index) => (
+                    <div key={index} className="flex items-center gap-3 p-2 bg-gray-50 rounded border">
+                      {getFileIcon(file.type)}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">{file.name}</div>
+                        <div className="text-sm text-gray-500">
+                          {formatFileSize(file.size)} • {file.type}
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                        onClick={() => {
+                          setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+                        }}
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setFileUploadOpen(false);
+              setSelectedFiles([]);
+            }}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (selectedFiles.length > 0) {
+                  handleFileUpload(selectedFiles);
+                }
+              }}
+              disabled={selectedFiles.length === 0 || uploadingFiles}
+            >
+              {uploadingFiles ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload {selectedFiles.length} File{selectedFiles.length > 1 ? 's' : ''}
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

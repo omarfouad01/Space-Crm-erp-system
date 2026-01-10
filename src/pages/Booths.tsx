@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 import { boothService, type Booth } from '@/services/supabaseService';
 import { CreateBoothDialog } from '@/components/forms/CreateBoothDialog';
 import { EditBoothDialog } from '@/components/forms/EditBoothDialog';
@@ -40,14 +41,21 @@ import {
   Zap,
   Activity,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Grid3X3,
+  List,
+  Crown,
+  TrendingUp,
+  BarChart3
 } from 'lucide-react';
 
 const Booths = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all-status");
   const [typeFilter, setTypeFilter] = useState("all-types");
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [booths, setBooths] = useState<Booth[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -453,6 +461,23 @@ const Booths = () => {
                   <SelectItem value="Custom">Custom</SelectItem>
                 </SelectContent>
               </Select>
+              
+              <div className="flex items-center gap-2 ml-4">
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                >
+                  <Grid3X3 className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                >
+                  <List className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -598,6 +623,56 @@ const Booths = () => {
                     </div>
                   )}
                 </CardContent>
+                
+                {/* Card Footer with Actions */}
+                <div className="px-6 py-4 border-t bg-gray-50 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/booths/${booth.id}`)}
+                    >
+                      <Eye className="w-4 h-4 mr-1" />
+                      View Details
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedBooth(booth);
+                        setEditDialogOpen(true);
+                      }}
+                    >
+                      <Edit className="w-4 h-4 mr-1" />
+                      Edit
+                    </Button>
+                  </div>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreHorizontal className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => {
+                        setSelectedBooth(booth);
+                        setActionsDialogOpen(true);
+                      }}>
+                        <Activity className="w-4 h-4 mr-2" />
+                        Quick Actions
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={() => handleDeleteBooth(booth.id)}
+                        className="text-red-600"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </Card>
             ))}
           </div>
@@ -636,7 +711,7 @@ const Booths = () => {
                       variant="outline"
                       className="w-full justify-start"
                       onClick={() => {
-                        // View details action
+                        navigate(`/booths/${selectedBooth.id}`);
                         setActionsDialogOpen(false);
                       }}
                     >

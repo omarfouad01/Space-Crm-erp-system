@@ -16,6 +16,7 @@ import Tickets from '@/pages/Tickets';
 import HR from '@/pages/HR';
 import Expos from '@/pages/Expos';
 import Booths from '@/pages/Booths';
+import BoothDetail from '@/pages/BoothDetail';
 import Sponsorships from '@/pages/Sponsorships';
 import Payments from '@/pages/Payments';
 import Chat from '@/pages/Chat';
@@ -63,6 +64,7 @@ function App() {
           <Route path="/hr" element={<HR />} />
           <Route path="/expos" element={<Expos />} />
           <Route path="/booths" element={<Booths />} />
+          <Route path="/booths/:boothId" element={<BoothDetail />} />
           <Route path="/sponsorships" element={<Sponsorships />} />
           <Route path="/payments" element={<Payments />} />
           <Route path="/contracts" element={<Contracts />} />

@@ -22,6 +22,12 @@ import Chat from '@/pages/Chat';
 import Settings from '@/pages/Settings';
 import Login from '@/pages/Login';
 import ClientPortal from '@/pages/ClientPortal';
+import Contracts from '@/pages/Contracts';
+import Analytics from '@/pages/Analytics';
+import AdvancedFeatures from '@/pages/AdvancedFeatures';
+import Notifications from '@/pages/Notifications';
+import Commissions from '@/pages/Commissions';
+import Exhibitors from '@/pages/Exhibitors';
 
 function App() {
   // Mock authentication state - in real app this would come from context/state management
@@ -59,6 +65,12 @@ function App() {
           <Route path="/booths" element={<Booths />} />
           <Route path="/sponsorships" element={<Sponsorships />} />
           <Route path="/payments" element={<Payments />} />
+          <Route path="/contracts" element={<Contracts />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/advanced" element={<AdvancedFeatures />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/commissions" element={<Commissions />} />
+          <Route path="/exhibitors" element={<Exhibitors />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/client-portal/*" element={<ClientPortal />} />

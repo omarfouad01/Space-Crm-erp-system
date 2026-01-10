@@ -47,6 +47,7 @@ const menuSections = [
       { name: 'Payments', path: '/payments', icon: CreditCard, description: 'Transaction tracking' },
       { name: 'Finance', path: '/finance', icon: DollarSign, description: 'Financial dashboard' },
       { name: 'Commissions', path: '/commissions', icon: Percent, description: 'Sales compensation' },
+      { name: 'Proposals', path: '/proposals', icon: FileText, description: 'Client proposals & e-signatures' },
     ]
   },
   {

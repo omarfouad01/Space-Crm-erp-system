@@ -33,6 +33,7 @@ import Commissions from '@/pages/Commissions';
 import Exhibitors from '@/pages/Exhibitors';
 import UserTesting from '@/pages/UserTesting';
 import DesignSystem from '@/pages/DesignSystem';
+import ProposalSystem from '@/pages/ProposalSystem';
 
 function App() {
   // Mock authentication state - in real app this would come from context/state management
@@ -79,6 +80,7 @@ function App() {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/commissions" element={<Commissions />} />
           <Route path="/exhibitors" element={<Exhibitors />} />
+          <Route path="/proposals" element={<ProposalSystem />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/user-testing" element={<UserTesting />} />

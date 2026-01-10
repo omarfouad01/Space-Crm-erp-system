@@ -20,7 +20,7 @@ import Expos from '@/pages/Expos';
 import ExpoDetail from '@/pages/ExpoDetail';
 import Booths from '@/pages/Booths';
 import BoothDetail from '@/pages/BoothDetail';
-import Sponsorships from '@/pages/Sponsorships';
+import Sponsorship from '@/pages/Sponsorship';
 import Payments from '@/pages/Payments';
 import Chat from '@/pages/Chat';
 import Settings from '@/pages/Settings';
@@ -76,7 +76,7 @@ function App() {
           <Route path="/expos/:expoId" element={<ExpoDetail />} />
           <Route path="/booths" element={<Booths />} />
           <Route path="/booths/:boothId" element={<BoothDetail />} />
-          <Route path="/sponsorships" element={<Sponsorships />} />
+          <Route path="/sponsorships" element={<Sponsorship />} />
           <Route path="/payments" element={<Payments />} />
           <Route path="/contracts" element={<Contracts />} />
           <Route path="/analytics" element={<Analytics />} />

@@ -20,7 +20,8 @@ import {
   User,
   Users,
   Calendar,
-  ChevronRight
+  ChevronRight,
+  Activity
 } from 'lucide-react';
 
 const menuSections = [
@@ -28,6 +29,7 @@ const menuSections = [
     title: 'Core Operations',
     items: [
       { name: 'Dashboard', path: '/', icon: ChartColumn, description: 'Executive overview' },
+      { name: 'Robust Dashboard', path: '/robust-dashboard', icon: Activity, description: 'Enhanced dashboard with diagnostics' },
       { name: 'Clients', path: '/clients', icon: User, description: 'Client management' },
       { name: 'Deals', path: '/deals', icon: Briefcase, description: 'Sales pipeline' },
       { name: 'Expos', path: '/expos', icon: Briefcase, description: 'Event management' },

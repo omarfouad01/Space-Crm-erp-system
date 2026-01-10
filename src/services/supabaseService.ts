@@ -444,6 +444,22 @@ class SupabaseService {
     }
   }
 
+  // Payment Service
+  async getAllPayments(): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('payments_2026_01_10_12_00')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching payments:', error);
+      return [];
+    }
+  }
+
   // Exhibition Service
   async getAllExhibitions(): Promise<Exhibition[]> {
     try {
@@ -793,6 +809,33 @@ export const taskService = {
 
 export const expoService = {
   getAll: () => new SupabaseService().getAllExhibitions()
+};
+
+export const paymentService = {
+  getAll: () => new SupabaseService().getAllPayments()
+};
+
+export const connectionService = {
+  testConnection: async () => {
+    try {
+      const { data, error } = await supabase
+        .from('clients_2026_01_10_12_00')
+        .select('id')
+        .limit(1);
+      
+      return {
+        success: !error,
+        message: error ? error.message : 'Connection successful',
+        timestamp: new Date().toISOString()
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || 'Connection failed',
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
 };
 
 export default SupabaseService;

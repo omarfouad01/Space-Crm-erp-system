@@ -34,6 +34,7 @@ import Exhibitors from '@/pages/Exhibitors';
 import UserTesting from '@/pages/UserTesting';
 import DesignSystem from '@/pages/DesignSystem';
 import ProposalSystem from '@/pages/ProposalSystem';
+import RobustDashboard from '@/pages/RobustDashboard';
 
 function App() {
   // Mock authentication state - in real app this would come from context/state management
@@ -59,6 +60,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/dashboard" element={<Index />} />
+          <Route path="/robust-dashboard" element={<RobustDashboard />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/clients/:id" element={<ClientDetail />} />
           <Route path="/deals" element={<Deals />} />
